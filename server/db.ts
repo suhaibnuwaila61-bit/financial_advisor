@@ -283,7 +283,7 @@ export async function getSavingsGoals(userId: number) {
   return await db.select().from(savingsGoals).where(eq(savingsGoals.userId, userId));
 }
 
-export async function createSavingsGoal(userId: number, name: string, targetAmount: string, deadline?: Date, category?: string, description?: string) {
+export async function createSavingsGoal(userId: number, name: string, targetAmount: string, deadline?: Date, category?: string, description?: string, currentAmount?: string) {
   const db = await getDb();
   if (!db) return null;
   
@@ -291,7 +291,7 @@ export async function createSavingsGoal(userId: number, name: string, targetAmou
     userId,
     name,
     targetAmount,
-    currentAmount: "0",
+    currentAmount: currentAmount || "0",
     deadline,
     category,
     description
@@ -305,6 +305,14 @@ export async function updateSavingsGoalAmount(goalId: number, currentAmount: str
   return await db.update(savingsGoals)
     .set({ currentAmount })
     .where(eq(savingsGoals.id, goalId));
+}
+
+export async function deleteSavingsGoal(userId: number, goalId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.delete(savingsGoals)
+    .where(and(eq(savingsGoals.id, goalId), eq(savingsGoals.userId, userId)));
 }
 
 // Budget helpers

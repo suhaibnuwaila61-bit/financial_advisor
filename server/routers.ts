@@ -172,6 +172,7 @@ export const appRouter = router({
       .input(z.object({
         name: z.string(),
         targetAmount: z.string(),
+        currentAmount: z.string().optional(),
         deadline: z.date().optional(),
         category: z.string().optional(),
         description: z.string().optional()
@@ -183,7 +184,8 @@ export const appRouter = router({
           input.targetAmount,
           input.deadline,
           input.category,
-          input.description
+          input.description,
+          input.currentAmount
         );
       }),
     
@@ -194,6 +196,14 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         return await db.updateSavingsGoalAmount(input.goalId, input.currentAmount);
+      }),
+    
+    delete: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.deleteSavingsGoal(ctx.user.id, input.id);
       }),
   }),
 

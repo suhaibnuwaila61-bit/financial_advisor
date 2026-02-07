@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Plus, X, Target } from "lucide-react";
+import { Plus, X, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SavingsGoals() {
@@ -17,6 +17,21 @@ export default function SavingsGoals() {
 
   const { data: goals = [], isLoading, refetch } = trpc.savingsGoals.list.useQuery();
   const createGoal = trpc.savingsGoals.create.useMutation();
+  const deleteGoal = trpc.savingsGoals.delete.useMutation();
+
+  const handleDeleteGoal = async (goalId: number) => {
+    if (!confirm("Are you sure you want to delete this savings goal?")) {
+      return;
+    }
+
+    try {
+      await deleteGoal.mutateAsync({ id: goalId });
+      toast.success("Savings goal deleted successfully!");
+      refetch();
+    } catch (error) {
+      toast.error("Failed to delete savings goal");
+    }
+  };
 
   const handleAddGoal = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +45,7 @@ export default function SavingsGoals() {
       await createGoal.mutateAsync({
         name: formData.name,
         targetAmount: formData.targetAmount,
+        currentAmount: formData.currentAmount || "0",
         deadline: new Date(formData.deadline)
       });
 
@@ -210,11 +226,21 @@ export default function SavingsGoals() {
                         Target: {goal.deadline ? formatDate(goal.deadline) : 'No deadline'} ({daysLeft && daysLeft > 0 ? `${daysLeft} days left` : 'Deadline passed'})
                       </p>
                     </div>
-                    {isCompleted && (
-                      <span className="text-neon-green text-xs uppercase px-3 py-1 border border-neon-green rounded font-bold">
-                        ✓ Completed
-                      </span>
-                    )}
+                    <div className="flex gap-2">
+                      {isCompleted && (
+                        <span className="text-neon-green text-xs uppercase px-3 py-1 border border-neon-green rounded font-bold">
+                          ✓ Completed
+                        </span>
+                      )}
+                      <button
+                        onClick={() => handleDeleteGoal(goal.id)}
+                        disabled={deleteGoal.isPending}
+                        className="text-neon-pink hover:text-neon-cyan p-2"
+                        title="Delete goal"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Progress Bar */}
