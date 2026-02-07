@@ -3,9 +3,11 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { TrendingUp, TrendingDown, Target, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   const { data: overview, isLoading } = trpc.dashboard.getOverview.useQuery();
   const [stats, setStats] = useState({
     totalExpenses: "0",
@@ -119,13 +121,13 @@ export default function Dashboard() {
           <div className="card-neon p-6">
             <h3 className="text-neon-pink mb-4 uppercase tracking-wider font-bold">Quick Actions</h3>
             <div className="space-y-3">
-              <button className="w-full btn-neon text-sm">
+              <button onClick={() => navigate('/transactions')} className="w-full btn-neon text-sm">
                 + Add Transaction
               </button>
-              <button className="w-full btn-neon-cyan text-sm">
+              <button onClick={() => navigate('/investments')} className="w-full btn-neon-cyan text-sm">
                 + Add Investment
               </button>
-              <button className="w-full btn-neon text-sm">
+              <button onClick={() => navigate('/savings-goals')} className="w-full btn-neon text-sm">
                 + New Savings Goal
               </button>
             </div>

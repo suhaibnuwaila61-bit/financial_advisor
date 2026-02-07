@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Search, Filter, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,11 +35,8 @@ export default function Transactions() {
     return { startDate, endDate: now };
   };
 
-  const { startDate, endDate } = getDateRange();
-  const { data: transactions = [], isLoading } = trpc.transactions.list.useQuery({
-    startDate,
-    endDate
-  });
+  const dateRange = useMemo(() => getDateRange(), [timeRange]);
+  const { data: transactions = [], isLoading } = trpc.transactions.list.useQuery(dateRange);
 
   const { data: categories = [] } = trpc.categories.list.useQuery();
 
