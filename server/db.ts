@@ -275,6 +275,14 @@ export async function updateInvestmentPrice(investmentId: number, currentPrice: 
     .where(eq(investments.id, investmentId));
 }
 
+export async function deleteInvestment(userId: number, investmentId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.delete(investments)
+    .where(and(eq(investments.id, investmentId), eq(investments.userId, userId)));
+}
+
 // Savings goals helpers
 export async function getSavingsGoals(userId: number) {
   const db = await getDb();

@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Plus, X, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, X, TrendingUp, TrendingDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 type AssetType = "stock" | "crypto" | "etf" | "mutual_fund" | "commodity" | "other";
@@ -21,6 +21,21 @@ export default function Investments() {
 
   const { data: investments = [], isLoading, refetch } = trpc.investments.list.useQuery();
   const createInvestment = trpc.investments.create.useMutation();
+  const deleteInvestment = trpc.investments.delete.useMutation();
+
+  const handleDeleteInvestment = async (investmentId: number) => {
+    if (!confirm("Are you sure you want to delete this investment?")) {
+      return;
+    }
+
+    try {
+      await deleteInvestment.mutateAsync({ id: investmentId });
+      toast.success("Investment deleted successfully!");
+      refetch();
+    } catch (error) {
+      toast.error("Failed to delete investment");
+    }
+  };
 
   const handleAddInvestment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -277,9 +292,19 @@ export default function Investments() {
                       <h3 className="text-neon-pink font-bold text-lg">{investment.symbol}</h3>
                       <p className="text-neon-cyan/70 text-sm">{investment.name || investment.assetType}</p>
                     </div>
-                    <span className="text-neon-cyan/70 text-xs uppercase px-2 py-1 border border-neon-cyan/30 rounded">
-                      {investment.assetType}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-neon-cyan/70 text-xs uppercase px-2 py-1 border border-neon-cyan/30 rounded">
+                        {investment.assetType}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteInvestment(investment.id)}
+                        disabled={deleteInvestment.isPending}
+                        className="text-neon-pink hover:text-neon-cyan transition-colors p-2"
+                        title="Delete investment"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-2 mb-4 pb-4 border-b border-neon-cyan/20">

@@ -112,5 +112,5 @@
 
 - [x] When creating Savings Goal, set current amount from user input (progress shows correctly)
 - [x] Add delete button to Savings Goals page
-- [ ] Add delete button to Investments page
+- [x] Add delete button to Investments page
 - [x] Fix savings goal progress display to show current amount correctly

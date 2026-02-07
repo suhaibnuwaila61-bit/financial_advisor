@@ -160,6 +160,14 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return await db.updateInvestmentPrice(input.investmentId, input.currentPrice);
       }),
+    
+    delete: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.deleteInvestment(ctx.user.id, input.id);
+      }),
   }),
 
   // Savings Goals
