@@ -111,6 +111,14 @@ export const appRouter = router({
           input.transactionDate
         );
       }),
+    
+    delete: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.deleteTransaction(ctx.user.id, input.id);
+      }),
   }),
 
   // Investments

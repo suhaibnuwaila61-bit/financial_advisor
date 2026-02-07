@@ -100,3 +100,7 @@
 - [ ] Add budget input form
 - [x] Connect forms to backend mutations
 - [x] Add success/error notifications
+
+## User Requests
+
+- [x] Add delete transaction button to transaction list

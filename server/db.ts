@@ -151,6 +151,14 @@ export async function createTransaction(userId: number, categoryId: number, amou
   });
 }
 
+export async function deleteTransaction(userId: number, transactionId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.delete(transactions)
+    .where(and(eq(transactions.id, transactionId), eq(transactions.userId, userId)));
+}
+
 export async function getTotalExpenses(userId: number, startDate?: Date, endDate?: Date) {
   const db = await getDb();
   if (!db) return "0";

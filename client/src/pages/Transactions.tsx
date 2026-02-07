@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 type TimeRange = "daily" | "weekly" | "monthly";
@@ -43,6 +43,21 @@ export default function Transactions() {
   const { data: transactions = [], isLoading, refetch } = trpc.transactions.list.useQuery(dateRange);
   const { data: categories = [] } = trpc.categories.list.useQuery();
   const createTransaction = trpc.transactions.create.useMutation();
+  const deleteTransaction = trpc.transactions.delete.useMutation();
+
+  const handleDeleteTransaction = async (transactionId: number) => {
+    if (!confirm("Are you sure you want to delete this transaction?")) {
+      return;
+    }
+
+    try {
+      await deleteTransaction.mutateAsync({ id: transactionId });
+      toast.success("Transaction deleted successfully!");
+      refetch();
+    } catch (error) {
+      toast.error("Failed to delete transaction");
+    }
+  };
 
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -274,10 +289,20 @@ export default function Transactions() {
                   <p className="text-neon-cyan">{transaction.description}</p>
                   <p className="text-neon-cyan/50 text-xs mt-1">{formatDate(transaction.transactionDate)}</p>
                 </div>
-                <div className={`text-right font-bold text-lg ${
-                  transaction.type === 'income' ? 'text-neon-green' : 'text-neon-pink'
-                }`}>
-                  {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                <div className="flex items-center gap-4">
+                  <div className={`text-right font-bold text-lg ${
+                    transaction.type === 'income' ? 'text-neon-green' : 'text-neon-pink'
+                  }`}>
+                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                  </div>
+                  <button
+                    onClick={() => handleDeleteTransaction(transaction.id)}
+                    disabled={deleteTransaction.isPending}
+                    className="text-neon-pink hover:text-neon-cyan transition-colors p-2 hover:bg-neon-pink/10 rounded"
+                    title="Delete transaction"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             ))
