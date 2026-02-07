@@ -250,6 +250,14 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return await db.updateBudgetSpent(input.budgetId, input.spent);
       }),
+    
+    delete: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.deleteBudget(ctx.user.id, input.id);
+      }),
   }),
 
   // Notifications

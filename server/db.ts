@@ -355,6 +355,14 @@ export async function updateBudgetSpent(budgetId: number, spent: string) {
     .where(eq(budgets.id, budgetId));
 }
 
+export async function deleteBudget(userId: number, budgetId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.delete(budgets)
+    .where(and(eq(budgets.id, budgetId), eq(budgets.userId, userId)));
+}
+
 // Notification helpers
 export async function getNotifications(userId: number) {
   const db = await getDb();

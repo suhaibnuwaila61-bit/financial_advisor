@@ -114,3 +114,6 @@
 - [x] Add delete button to Savings Goals page
 - [x] Add delete button to Investments page
 - [x] Fix savings goal progress display to show current amount correctly
+
+- [x] Fix budget creation form - add working inputs and submit handler
+- [x] Add delete button to budgets with confirmation dialog

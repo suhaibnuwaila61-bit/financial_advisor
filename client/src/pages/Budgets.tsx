@@ -2,14 +2,64 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Plus, AlertTriangle, CheckCircle } from "lucide-react";
+import { Plus, X, AlertTriangle, CheckCircle, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Budgets() {
   const { user } = useAuth();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    limitAmount: "",
+    period: "monthly" as "daily" | "weekly" | "monthly" | "yearly",
+    categoryId: "",
+    alertThreshold: "80"
+  });
 
-  const { data: budgets = [], isLoading } = trpc.budgets.list.useQuery();
+  const { data: budgets = [], isLoading, refetch } = trpc.budgets.list.useQuery();
   const { data: categories = [] } = trpc.categories.list.useQuery();
+  const createBudget = trpc.budgets.create.useMutation();
+  const deleteBudget = trpc.budgets.delete.useMutation();
+
+  const handleAddBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.limitAmount) {
+      toast.error("Please fill in budget name and limit amount");
+      return;
+    }
+
+    try {
+      await createBudget.mutateAsync({
+        name: formData.name,
+        limitAmount: formData.limitAmount,
+        period: formData.period,
+        categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
+        alertThreshold: parseInt(formData.alertThreshold)
+      });
+
+      toast.success("Budget created successfully!");
+      setFormData({ name: "", limitAmount: "", period: "monthly", categoryId: "", alertThreshold: "80" });
+      setShowAddForm(false);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to create budget");
+    }
+  };
+
+  const handleDeleteBudget = async (budgetId: number) => {
+    if (!confirm("Are you sure you want to delete this budget?")) {
+      return;
+    }
+
+    try {
+      await deleteBudget.mutateAsync({ id: budgetId });
+      toast.success("Budget deleted successfully!");
+      refetch();
+    } catch (error) {
+      toast.error("Failed to delete budget");
+    }
+  };
 
   const formatCurrency = (value: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -127,16 +177,108 @@ export default function Budgets() {
           </div>
         </div>
 
+        {/* Add Budget Form */}
+        {showAddForm && (
+          <div className="card-neon-pink p-6 border-neon-pink">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-neon-pink font-bold uppercase tracking-wider">Create New Budget</h3>
+              <button onClick={() => setShowAddForm(false)} className="text-neon-pink hover:text-neon-cyan">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddBudget} className="space-y-4">
+              {/* Budget Name */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Budget Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Food & Dining, Entertainment"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Limit Amount */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Monthly Limit ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="500.00"
+                  value={formData.limitAmount}
+                  onChange={(e) => setFormData({ ...formData, limitAmount: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Period */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Period</label>
+                <select
+                  value={formData.period}
+                  onChange={(e) => setFormData({ ...formData, period: e.target.value as any })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                >
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Category (Optional)</label>
+                <select
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                >
+                  <option value="">General</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Alert Threshold */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Alert Threshold (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="80"
+                  value={formData.alertThreshold}
+                  onChange={(e) => setFormData({ ...formData, alertThreshold: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={createBudget.isPending}
+                className="w-full btn-neon-cyan uppercase font-bold py-3"
+              >
+                {createBudget.isPending ? 'Creating...' : 'Create Budget'}
+              </button>
+            </form>
+          </div>
+        )}
+
         {/* Add Budget Button */}
-        <div className="flex justify-end">
+        {!showAddForm && (
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="btn-neon-cyan flex items-center gap-2"
+            onClick={() => setShowAddForm(true)}
+            className="btn-neon-cyan flex items-center gap-2 w-full justify-center py-3"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
             New Budget
           </button>
-        </div>
+        )}
 
         {/* Budgets Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -168,8 +310,18 @@ export default function Budgets() {
                         {getCategoryName(budget.categoryId)} • {getPeriodLabel(budget.period)}
                       </p>
                     </div>
-                    <div className="flex-shrink-0">
-                      {getStatusIcon(budget.spent, budget.limitAmount, budget.alertThreshold)}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-shrink-0">
+                        {getStatusIcon(budget.spent, budget.limitAmount, budget.alertThreshold)}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteBudget(budget.id)}
+                        disabled={deleteBudget.isPending}
+                        className="text-neon-pink hover:text-neon-cyan transition-colors p-2"
+                        title="Delete budget"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
 
