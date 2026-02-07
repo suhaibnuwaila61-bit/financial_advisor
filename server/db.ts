@@ -101,11 +101,57 @@ export async function getUserByOpenId(openId: string) {
 }
 
 // Category helpers
+export async function initializeDefaultCategories(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const defaultCategories: Array<{ name: string; type: "income" | "expense" }> = [
+    { name: "Salary", type: "income" },
+    { name: "Bonus", type: "income" },
+    { name: "Investment Income", type: "income" },
+    { name: "Food & Dining", type: "expense" },
+    { name: "Transportation", type: "expense" },
+    { name: "Utilities", type: "expense" },
+    { name: "Entertainment", type: "expense" },
+    { name: "Shopping", type: "expense" },
+    { name: "Healthcare", type: "expense" },
+    { name: "Savings", type: "expense" },
+    { name: "Investment", type: "expense" },
+    { name: "Other", type: "expense" }
+  ];
+  
+  const result = [];
+  for (const cat of defaultCategories) {
+    try {
+      const res = await db.insert(categories).values({
+        userId,
+        name: cat.name,
+        type: cat.type,
+        color: "#FF1493",
+        icon: "tag"
+      });
+      if (res) result.push(res);
+    } catch (e) {
+      // Ignore duplicate errors
+    }
+  }
+  
+  return result;
+}
+
 export async function getCategories(userId: number) {
   const db = await getDb();
   if (!db) return [];
   
-  return await db.select().from(categories).where(eq(categories.userId, userId));
+  const userCategories = await db.select().from(categories).where(eq(categories.userId, userId));
+  
+  // If no categories exist, initialize defaults
+  if (userCategories.length === 0) {
+    await initializeDefaultCategories(userId);
+    return await db.select().from(categories).where(eq(categories.userId, userId));
+  }
+  
+  return userCategories;
 }
 
 export async function createCategory(userId: number, name: string, type: "expense" | "income", color?: string, icon?: string) {

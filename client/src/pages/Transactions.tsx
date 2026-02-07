@@ -220,9 +220,14 @@ export default function Transactions() {
                   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
                 >
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
+                  <option value="">-- Select Category --</option>
+                  {categories && categories.length > 0 ? (
+                    categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))
+                  ) : (
+                    <option disabled>No categories available</option>
+                  )}
                 </select>
               </div>
 

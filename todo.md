@@ -104,3 +104,5 @@
 ## User Requests
 
 - [x] Add delete transaction button to transaction list
+
+- [x] Fix category dropdown to show predefined options (Savings, Investment, Expense, etc.)
