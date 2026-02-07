@@ -2,20 +2,66 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Plus, TrendingUp, TrendingDown, Zap } from "lucide-react";
+import { Plus, X, TrendingUp, TrendingDown } from "lucide-react";
+import { toast } from "sonner";
+
+type AssetType = "stock" | "crypto" | "etf" | "mutual_fund" | "commodity" | "other";
 
 export default function Investments() {
   const { user } = useAuth();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    symbol: "",
+    name: "",
+    assetType: "stock" as AssetType,
+    quantity: "",
+    purchasePrice: "",
+    currentPrice: ""
+  });
 
-  const { data: investments = [], isLoading } = trpc.investments.list.useQuery();
+  const { data: investments = [], isLoading, refetch } = trpc.investments.list.useQuery();
+  const createInvestment = trpc.investments.create.useMutation();
+
+  const handleAddInvestment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.symbol || !formData.quantity || !formData.purchasePrice || !formData.currentPrice) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      await createInvestment.mutateAsync({
+        symbol: formData.symbol.toUpperCase(),
+        name: formData.name || formData.symbol,
+        assetType: formData.assetType,
+        quantity: formData.quantity,
+        purchasePrice: formData.purchasePrice,
+        currentPrice: formData.currentPrice
+      });
+
+      toast.success("Investment added successfully!");
+      setFormData({
+        symbol: "",
+        name: "",
+        assetType: "stock",
+        quantity: "",
+        purchasePrice: "",
+        currentPrice: ""
+      });
+      setShowAddForm(false);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to add investment");
+    }
+  };
 
   const formatCurrency = (value: string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2
-    }).format(parseFloat(value));
+    }).format(parseFloat(value) || 0);
   };
 
   const calculateGainLoss = (quantity: string, purchasePrice: string, currentPrice: string) => {
@@ -50,32 +96,6 @@ export default function Investments() {
   const totalGainLoss = totalPortfolioValue - totalCostBasis;
   const totalGainLossPercent = totalCostBasis > 0 ? (totalGainLoss / totalCostBasis) * 100 : 0;
 
-  const getAssetTypeColor = (type: string) => {
-    switch (type) {
-      case 'stock':
-        return 'bg-neon-blue';
-      case 'crypto':
-        return 'bg-neon-purple';
-      case 'etf':
-        return 'bg-neon-green';
-      default:
-        return 'bg-neon-cyan';
-    }
-  };
-
-  const getAssetTypeIcon = (type: string) => {
-    switch (type) {
-      case 'stock':
-        return '📈';
-      case 'crypto':
-        return '₿';
-      case 'etf':
-        return '🎯';
-      default:
-        return '💰';
-    }
-  };
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -85,149 +105,219 @@ export default function Investments() {
             INVESTMENT PORTFOLIO
           </h1>
           <p className="text-neon-cyan text-sm uppercase tracking-widest">
-            Manage your assets and track performance
+            Manage your stocks, crypto, and other assets
           </p>
         </div>
 
         {/* Portfolio Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="card-neon p-6">
-            <div className="hud-stat-label">Total Portfolio Value</div>
-            <div className="hud-stat-value text-neon-cyan">
-              {formatCurrency(totalPortfolioValue.toString())}
-            </div>
-            <div className="mt-4 pt-4 border-t border-neon-cyan/30 text-xs text-neon-cyan/70">
-              {investments.length} assets
-            </div>
+            <div className="hud-stat-label">Total Value</div>
+            <div className="hud-stat-value text-neon-cyan">{formatCurrency(totalPortfolioValue.toString())}</div>
           </div>
-
-          <div className="card-neon-pink p-6">
-            <div className="hud-stat-label text-neon-pink">Total Cost Basis</div>
-            <div className="hud-stat-value text-neon-pink">
-              {formatCurrency(totalCostBasis.toString())}
-            </div>
-            <div className="mt-4 pt-4 border-t border-neon-pink/30 text-xs text-neon-pink/70">
-              Initial investment
-            </div>
+          <div className="card-neon p-6">
+            <div className="hud-stat-label">Total Cost</div>
+            <div className="hud-stat-value text-neon-cyan/70">{formatCurrency(totalCostBasis.toString())}</div>
           </div>
-
           <div className={`card-neon p-6 ${totalGainLoss >= 0 ? 'border-neon-green' : 'border-neon-pink'}`}>
             <div className={`hud-stat-label ${totalGainLoss >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
-              Total Gain/Loss
+              Gain/Loss
             </div>
             <div className={`hud-stat-value ${totalGainLoss >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
-              {totalGainLoss >= 0 ? '+' : ''}{formatCurrency(totalGainLoss.toString())}
+              {formatCurrency(totalGainLoss.toString())}
             </div>
-            <div className={`mt-4 pt-4 border-t ${totalGainLoss >= 0 ? 'border-neon-green/30 text-neon-green/70' : 'border-neon-pink/30 text-neon-pink/70'} text-xs`}>
-              {totalGainLoss >= 0 ? '+' : ''}{totalGainLossPercent.toFixed(2)}%
+          </div>
+          <div className={`card-neon p-6 ${totalGainLossPercent >= 0 ? 'border-neon-green' : 'border-neon-pink'}`}>
+            <div className={`hud-stat-label ${totalGainLossPercent >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
+              Return %
+            </div>
+            <div className={`hud-stat-value ${totalGainLossPercent >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
+              {totalGainLossPercent.toFixed(2)}%
             </div>
           </div>
         </div>
 
-        {/* Add Investment Button */}
-        <div className="flex justify-end">
+        {/* Add Investment Form */}
+        {showAddForm && (
+          <div className="card-neon-pink p-6 border-neon-pink">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-neon-pink font-bold uppercase tracking-wider">Add Investment</h3>
+              <button onClick={() => setShowAddForm(false)} className="text-neon-pink hover:text-neon-cyan">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddInvestment} className="space-y-4">
+              {/* Asset Type */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Asset Type</label>
+                <select
+                  value={formData.assetType}
+                  onChange={(e) => setFormData({ ...formData, assetType: e.target.value as AssetType })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2"
+                >
+                  <option value="stock">Stock</option>
+                  <option value="crypto">Cryptocurrency</option>
+                  <option value="etf">ETF</option>
+                  <option value="mutual_fund">Mutual Fund</option>
+                  <option value="other">Other</option>
+                  <option value="commodity">Commodity</option>
+                </select>
+              </div>
+
+              {/* Symbol */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Symbol (AAPL, BTC, etc)</label>
+                <input
+                  type="text"
+                  placeholder="AAPL"
+                  value={formData.symbol}
+                  onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Name */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Name (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="Apple Inc."
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Quantity</label>
+                <input
+                  type="number"
+                  step="0.00000001"
+                  placeholder="10"
+                  value={formData.quantity}
+                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Purchase Price */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Purchase Price ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="150.00"
+                  value={formData.purchasePrice}
+                  onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Current Price */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Current Price ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="180.00"
+                  value={formData.currentPrice}
+                  onChange={(e) => setFormData({ ...formData, currentPrice: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={createInvestment.isPending}
+                className="w-full btn-neon-cyan uppercase font-bold py-3"
+              >
+                {createInvestment.isPending ? 'Adding...' : 'Add Investment'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Add Button */}
+        {!showAddForm && (
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="btn-neon-cyan flex items-center gap-2"
+            onClick={() => setShowAddForm(true)}
+            className="btn-neon-cyan flex items-center gap-2 w-full justify-center py-3"
           >
-            <Plus className="w-4 h-4" />
-            Add Investment
+            <Plus className="w-5 h-5" />
+            Add New Investment
           </button>
-        </div>
+        )}
 
-        {/* Holdings Table */}
-        <div className="card-neon overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b-2 border-neon-pink">
-                <tr>
-                  <th className="px-6 py-4 text-left text-neon-pink uppercase text-xs font-bold tracking-wider">Symbol</th>
-                  <th className="px-6 py-4 text-left text-neon-pink uppercase text-xs font-bold tracking-wider">Type</th>
-                  <th className="px-6 py-4 text-center text-neon-pink uppercase text-xs font-bold tracking-wider">Quantity</th>
-                  <th className="px-6 py-4 text-right text-neon-pink uppercase text-xs font-bold tracking-wider">Purchase Price</th>
-                  <th className="px-6 py-4 text-right text-neon-pink uppercase text-xs font-bold tracking-wider">Current Price</th>
-                  <th className="px-6 py-4 text-right text-neon-pink uppercase text-xs font-bold tracking-wider">Total Value</th>
-                  <th className="px-6 py-4 text-right text-neon-pink uppercase text-xs font-bold tracking-wider">Gain/Loss</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-neon-cyan">
-                      Loading investments...
-                    </td>
-                  </tr>
-                ) : investments.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-neon-cyan/50">
-                      No investments yet. Add your first investment to get started!
-                    </td>
-                  </tr>
-                ) : (
-                  investments.map((inv, idx) => {
-                    const gainLoss = calculateGainLoss(inv.quantity, inv.purchasePrice, inv.currentPrice);
-                    const gainLossPercent = calculateGainLossPercent(inv.purchasePrice, inv.currentPrice);
-                    const totalValue = calculateTotalValue(inv.quantity, inv.currentPrice);
-
-                    return (
-                      <tr
-                        key={inv.id}
-                        className={`border-t border-neon-cyan/20 hover:bg-neon-cyan/5 transition-colors ${
-                          idx % 2 === 0 ? 'bg-transparent' : 'bg-neon-pink/5'
-                        }`}
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">{getAssetTypeIcon(inv.assetType)}</span>
-                            <div>
-                              <div className="font-bold text-neon-cyan">{inv.symbol}</div>
-                              <div className="text-xs text-neon-cyan/50">{inv.name}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-bold uppercase tracking-wider text-black ${getAssetTypeColor(inv.assetType)}`}>
-                            {inv.assetType}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center text-neon-cyan">
-                          {parseFloat(inv.quantity).toFixed(8)}
-                        </td>
-                        <td className="px-6 py-4 text-right text-neon-cyan">
-                          {formatCurrency(inv.purchasePrice)}
-                        </td>
-                        <td className="px-6 py-4 text-right text-neon-cyan">
-                          {formatCurrency(inv.currentPrice)}
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold text-neon-pink">
-                          {formatCurrency(totalValue.toString())}
-                        </td>
-                        <td className={`px-6 py-4 text-right font-bold flex items-center justify-end gap-2 ${
-                          gainLoss >= 0 ? 'text-neon-green' : 'text-neon-pink'
-                        }`}>
-                          <span>{gainLoss >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}</span>
-                          <span>{gainLoss >= 0 ? '+' : ''}{formatCurrency(gainLoss.toString())} ({gainLossPercent >= 0 ? '+' : ''}{gainLossPercent.toFixed(2)}%)</span>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Market Data Info */}
-        <div className="card-neon p-6 border-neon-cyan">
-          <div className="flex items-start gap-4">
-            <div className="text-neon-cyan text-2xl">⚡</div>
-            <div>
-              <h4 className="text-neon-pink font-bold mb-2">Real-Time Market Data</h4>
-              <p className="text-neon-cyan text-sm">
-                Your portfolio values are updated in real-time with live market data for stocks and cryptocurrencies. Check back regularly to see your gains and losses update automatically.
-              </p>
+        {/* Investments List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {isLoading ? (
+            <div className="col-span-2 text-center text-neon-cyan py-8">Loading investments...</div>
+          ) : investments.length === 0 ? (
+            <div className="col-span-2 card-neon p-8 text-center">
+              <TrendingUp className="w-12 h-12 text-neon-cyan mx-auto mb-4 opacity-50" />
+              <p className="text-neon-cyan">No investments yet. Add your first investment to get started!</p>
             </div>
-          </div>
+          ) : (
+            investments.map((investment) => {
+              const currentValue = calculateTotalValue(investment.quantity, investment.currentPrice);
+              const costBasis = calculateTotalCost(investment.quantity, investment.purchasePrice);
+              const gainLoss = calculateGainLoss(investment.quantity, investment.purchasePrice, investment.currentPrice);
+              const gainLossPercent = calculateGainLossPercent(investment.purchasePrice, investment.currentPrice);
+
+              return (
+                <div
+                  key={investment.id}
+                  className={`card-neon p-6 ${gainLoss >= 0 ? 'border-neon-green' : 'border-neon-pink'}`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-neon-pink font-bold text-lg">{investment.symbol}</h3>
+                      <p className="text-neon-cyan/70 text-sm">{investment.name || investment.assetType}</p>
+                    </div>
+                    <span className="text-neon-cyan/70 text-xs uppercase px-2 py-1 border border-neon-cyan/30 rounded">
+                      {investment.assetType}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 mb-4 pb-4 border-b border-neon-cyan/20">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-neon-cyan/70">Quantity:</span>
+                      <span className="text-neon-cyan font-bold">{parseFloat(investment.quantity).toFixed(8)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-neon-cyan/70">Purchase Price:</span>
+                      <span className="text-neon-cyan">{formatCurrency(investment.purchasePrice)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-neon-cyan/70">Current Price:</span>
+                      <span className="text-neon-cyan font-bold">{formatCurrency(investment.currentPrice)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-neon-cyan/70">Current Value:</span>
+                      <span className="text-neon-cyan font-bold">{formatCurrency(currentValue.toString())}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neon-cyan/70">Cost Basis:</span>
+                      <span className="text-neon-cyan/70">{formatCurrency(costBasis.toString())}</span>
+                    </div>
+                    <div className={`flex justify-between font-bold ${gainLoss >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
+                      <span>Gain/Loss:</span>
+                      <span className="flex items-center gap-1">
+                        {gainLoss >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        {gainLoss >= 0 ? '+' : ''}{formatCurrency(gainLoss.toString())} ({gainLossPercent.toFixed(2)}%)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </DashboardLayout>

@@ -91,3 +91,12 @@
 - [ ] Fix form inputs not accepting data (need to add form handlers)
 - [x] Fix login/authentication flow (working via DashboardLayout)
 - [x] Ensure all pages are accessible from navigation
+
+## Form Input Features (PRIORITY)
+
+- [x] Add transaction input form (salary, expenses)
+- [x] Add investment input form (stocks, crypto)
+- [x] Add savings goal input form
+- [ ] Add budget input form
+- [x] Connect forms to backend mutations
+- [x] Add success/error notifications

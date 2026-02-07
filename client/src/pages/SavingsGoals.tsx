@@ -2,59 +2,74 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Plus, Target, Calendar, TrendingUp } from "lucide-react";
+import { Plus, X, Target } from "lucide-react";
+import { toast } from "sonner";
 
 export default function SavingsGoals() {
   const { user } = useAuth();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    targetAmount: "",
+    currentAmount: "0",
+    deadline: ""
+  });
 
-  const { data: goals = [], isLoading } = trpc.savingsGoals.list.useQuery();
+  const { data: goals = [], isLoading, refetch } = trpc.savingsGoals.list.useQuery();
+  const createGoal = trpc.savingsGoals.create.useMutation();
+
+  const handleAddGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.targetAmount || !formData.deadline) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      await createGoal.mutateAsync({
+        name: formData.name,
+        targetAmount: formData.targetAmount,
+        deadline: new Date(formData.deadline)
+      });
+
+      toast.success("Savings goal created successfully!");
+      setFormData({ name: "", targetAmount: "", currentAmount: "0", deadline: "" });
+      setShowAddForm(false);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to create savings goal");
+    }
+  };
 
   const formatCurrency = (value: string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2
-    }).format(parseFloat(value));
+    }).format(parseFloat(value) || 0);
   };
 
-  const formatDate = (date: Date | string | null | undefined) => {
-    if (!date) return 'No deadline';
+  const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date;
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const calculateProgress = (current: string, target: string) => {
-    const c = parseFloat(current);
-    const t = parseFloat(target);
+  const getProgressPercent = (current: string, target: string) => {
+    const c = parseFloat(current) || 0;
+    const t = parseFloat(target) || 1;
     return Math.min((c / t) * 100, 100);
   };
 
-  const calculateDaysRemaining = (deadline: Date | string | null | undefined) => {
-    if (!deadline) return null;
+  const getDaysRemaining = (deadline: Date | string) => {
     const d = typeof deadline === 'string' ? new Date(deadline) : deadline;
     const today = new Date();
     const diff = d.getTime() - today.getTime();
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    return days;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
   const totalSavingsTarget = goals.reduce((sum, goal) => sum + parseFloat(goal.targetAmount), 0);
-  const totalSavingsAchieved = goals.reduce((sum, goal) => sum + parseFloat(goal.currentAmount), 0);
-  const completedGoals = goals.filter(g => g.status === 'completed').length;
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'text-neon-green border-neon-green';
-      case 'active':
-        return 'text-neon-cyan border-neon-cyan';
-      case 'abandoned':
-        return 'text-neon-pink border-neon-pink';
-      default:
-        return 'text-neon-cyan border-neon-cyan';
-    }
-  };
+  const totalSaved = goals.reduce((sum, goal) => sum + parseFloat(goal.currentAmount), 0);
 
   return (
     <DashboardLayout>
@@ -65,166 +80,174 @@ export default function SavingsGoals() {
             SAVINGS GOALS
           </h1>
           <p className="text-neon-cyan text-sm uppercase tracking-widest">
-            Set targets and track your progress
+            Set and track your financial targets
           </p>
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card-neon p-6">
             <div className="hud-stat-label">Total Target</div>
-            <div className="hud-stat-value text-neon-cyan">
-              {formatCurrency(totalSavingsTarget.toString())}
-            </div>
-            <div className="mt-4 pt-4 border-t border-neon-cyan/30 text-xs text-neon-cyan/70">
-              All goals combined
-            </div>
+            <div className="hud-stat-value text-neon-cyan">{formatCurrency(totalSavingsTarget.toString())}</div>
           </div>
-
-          <div className="card-neon-pink p-6">
-            <div className="hud-stat-label text-neon-pink">Achieved</div>
-            <div className="hud-stat-value text-neon-pink">
-              {formatCurrency(totalSavingsAchieved.toString())}
-            </div>
-            <div className="mt-4 pt-4 border-t border-neon-pink/30 text-xs text-neon-pink/70">
-              {totalSavingsTarget > 0 ? ((totalSavingsAchieved / totalSavingsTarget) * 100).toFixed(1) : 0}% complete
-            </div>
-          </div>
-
           <div className="card-neon p-6">
-            <div className="hud-stat-label">Remaining</div>
-            <div className="hud-stat-value text-neon-cyan">
-              {formatCurrency((totalSavingsTarget - totalSavingsAchieved).toString())}
-            </div>
-            <div className="mt-4 pt-4 border-t border-neon-cyan/30 text-xs text-neon-cyan/70">
-              To reach all targets
-            </div>
+            <div className="hud-stat-label">Total Saved</div>
+            <div className="hud-stat-value text-neon-green">{formatCurrency(totalSaved.toString())}</div>
           </div>
-
           <div className="card-neon p-6">
-            <div className="hud-stat-label">Completed</div>
-            <div className="hud-stat-value text-neon-green">
-              {completedGoals}
-            </div>
-            <div className="mt-4 pt-4 border-t border-neon-green/30 text-xs text-neon-green/70">
-              {goals.length} total goals
-            </div>
+            <div className="hud-stat-label">Active Goals</div>
+            <div className="hud-stat-value text-neon-pink">{goals.length}</div>
           </div>
         </div>
 
-        {/* Add Goal Button */}
-        <div className="flex justify-end">
+        {/* Add Goal Form */}
+        {showAddForm && (
+          <div className="card-neon-pink p-6 border-neon-pink">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-neon-pink font-bold uppercase tracking-wider">Create New Goal</h3>
+              <button onClick={() => setShowAddForm(false)} className="text-neon-pink hover:text-neon-cyan">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddGoal} className="space-y-4">
+              {/* Goal Name */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Goal Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Vacation Fund, Emergency Fund"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Target Amount */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Target Amount ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="5000.00"
+                  value={formData.targetAmount}
+                  onChange={(e) => setFormData({ ...formData, targetAmount: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Current Amount */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Current Amount ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData.currentAmount}
+                  onChange={(e) => setFormData({ ...formData, currentAmount: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Deadline */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Target Deadline</label>
+                <input
+                  type="date"
+                  value={formData.deadline}
+                  onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={createGoal.isPending}
+                className="w-full btn-neon-cyan uppercase font-bold py-3"
+              >
+                {createGoal.isPending ? 'Creating...' : 'Create Goal'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Add Button */}
+        {!showAddForm && (
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="btn-neon-cyan flex items-center gap-2"
+            onClick={() => setShowAddForm(true)}
+            className="btn-neon-cyan flex items-center gap-2 w-full justify-center py-3"
           >
-            <Plus className="w-4 h-4" />
-            New Savings Goal
+            <Plus className="w-5 h-5" />
+            Create New Goal
           </button>
-        </div>
+        )}
 
-        {/* Goals Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Goals List */}
+        <div className="space-y-4">
           {isLoading ? (
-            <div className="col-span-2 text-center text-neon-cyan py-8">
-              Loading savings goals...
-            </div>
+            <div className="text-center text-neon-cyan py-8">Loading goals...</div>
           ) : goals.length === 0 ? (
-            <div className="col-span-2 card-neon p-8 text-center">
+            <div className="card-neon p-8 text-center">
               <Target className="w-12 h-12 text-neon-cyan mx-auto mb-4 opacity-50" />
               <p className="text-neon-cyan">No savings goals yet. Create your first goal to get started!</p>
             </div>
           ) : (
             goals.map((goal) => {
-              const progress = calculateProgress(goal.currentAmount, goal.targetAmount);
-              const daysRemaining = calculateDaysRemaining(goal.deadline);
+              const progress = getProgressPercent(goal.currentAmount, goal.targetAmount);
+              const daysLeft = goal.deadline ? getDaysRemaining(goal.deadline) : null;
+              const isCompleted = parseFloat(goal.currentAmount) >= parseFloat(goal.targetAmount);
 
               return (
                 <div
                   key={goal.id}
-                  className={`card-neon p-6 ${goal.status === 'completed' ? 'border-neon-green' : ''}`}
+                  className={`card-neon p-6 ${isCompleted ? 'border-neon-green' : 'border-neon-cyan'}`}
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-neon-pink font-bold text-lg mb-1">{goal.name}</h3>
-                      {goal.category && (
-                        <p className="text-neon-cyan/70 text-sm">{goal.category}</p>
-                      )}
+                    <div>
+                      <h3 className="text-neon-pink font-bold text-lg">{goal.name}</h3>
+                      <p className="text-neon-cyan/70 text-sm">
+                        Target: {goal.deadline ? formatDate(goal.deadline) : 'No deadline'} ({daysLeft && daysLeft > 0 ? `${daysLeft} days left` : 'Deadline passed'})
+                      </p>
                     </div>
-                    <span className={`inline-block px-3 py-1 border-2 text-xs font-bold uppercase tracking-wider ${getStatusColor(goal.status)}`}>
-                      {goal.status}
-                    </span>
+                    {isCompleted && (
+                      <span className="text-neon-green text-xs uppercase px-3 py-1 border border-neon-green rounded font-bold">
+                        ✓ Completed
+                      </span>
+                    )}
                   </div>
-
-                  {goal.description && (
-                    <p className="text-neon-cyan text-sm mb-4">{goal.description}</p>
-                  )}
 
                   {/* Progress Bar */}
                   <div className="mb-4">
-                    <div className="flex justify-between mb-2">
-                      <span className="text-neon-cyan text-sm">{formatCurrency(goal.currentAmount)}</span>
-                      <span className="text-neon-cyan/70 text-sm">{formatCurrency(goal.targetAmount)}</span>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-neon-cyan">{formatCurrency(goal.currentAmount)}</span>
+                      <span className="text-neon-cyan/70">{formatCurrency(goal.targetAmount)}</span>
                     </div>
-                    <div className="w-full bg-neon-cyan/20 border border-neon-cyan h-3 relative overflow-hidden">
+                    <div className="w-full bg-background border-2 border-neon-cyan/30 h-3 relative overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-neon-cyan to-neon-pink transition-all duration-300"
+                        className={`h-full transition-all duration-300 ${
+                          isCompleted ? 'bg-neon-green' : 'bg-neon-pink'
+                        }`}
                         style={{ width: `${progress}%` }}
                       />
                     </div>
-                    <div className="text-right mt-2 text-neon-pink font-bold text-sm">
-                      {progress.toFixed(1)}%
+                    <div className="text-right text-xs text-neon-cyan/70 mt-1">
+                      {progress.toFixed(1)}% complete
                     </div>
                   </div>
 
-                  {/* Deadline Info */}
-                  {goal.deadline && (
-                    <div className="flex items-center gap-2 text-neon-cyan text-sm border-t border-neon-cyan/20 pt-4">
-                      <Calendar className="w-4 h-4" />
-                      <span>{formatDate(goal.deadline)}</span>
-                      {daysRemaining !== null && (
-                        <span className={daysRemaining > 0 ? 'text-neon-green' : 'text-neon-pink'}>
-                          ({daysRemaining > 0 ? `${daysRemaining} days left` : 'Deadline passed'})
-                        </span>
-                      )}
-                    </div>
-                  )}
-
                   {/* Amount Needed */}
-                  {parseFloat(goal.currentAmount) < parseFloat(goal.targetAmount) && (
-                    <div className="mt-4 p-3 bg-neon-pink/10 border border-neon-pink/30 rounded">
-                      <div className="text-neon-pink text-sm font-bold">
-                        Need: {formatCurrency((parseFloat(goal.targetAmount) - parseFloat(goal.currentAmount)).toString())}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Completed Badge */}
-                  {goal.status === 'completed' && (
-                    <div className="mt-4 p-3 bg-neon-green/10 border border-neon-green/30 rounded text-center">
-                      <div className="text-neon-green text-sm font-bold">✓ Goal Achieved!</div>
+                  {!isCompleted && (
+                    <div className="text-sm text-neon-cyan/70">
+                      Amount needed: <span className="text-neon-pink font-bold">
+                        {formatCurrency((parseFloat(goal.targetAmount) - parseFloat(goal.currentAmount)).toString())}
+                      </span>
                     </div>
                   )}
                 </div>
               );
             })
           )}
-        </div>
-
-        {/* Tips Section */}
-        <div className="card-neon p-6 border-neon-cyan">
-          <div className="flex items-start gap-4">
-            <div className="text-neon-cyan text-2xl">💡</div>
-            <div>
-              <h4 className="text-neon-pink font-bold mb-2">Savings Tips</h4>
-              <ul className="text-neon-cyan text-sm space-y-2">
-                <li>• Set realistic deadlines to stay motivated</li>
-                <li>• Break large goals into smaller milestones</li>
-                <li>• Review and adjust your goals quarterly</li>
-                <li>• Celebrate when you reach each milestone</li>
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
     </DashboardLayout>

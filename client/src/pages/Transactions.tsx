@@ -2,17 +2,21 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
-import { Plus, Search, Filter, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Plus, X } from "lucide-react";
+import { toast } from "sonner";
 
 type TimeRange = "daily" | "weekly" | "monthly";
 
 export default function Transactions() {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState<TimeRange>("monthly");
-  const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    amount: "",
+    description: "",
+    type: "expense" as "income" | "expense",
+    categoryId: "1"
+  });
 
   // Get date range based on selected time period
   const getDateRange = () => {
@@ -36,16 +40,37 @@ export default function Transactions() {
   };
 
   const dateRange = useMemo(() => getDateRange(), [timeRange]);
-  const { data: transactions = [], isLoading } = trpc.transactions.list.useQuery(dateRange);
-
+  const { data: transactions = [], isLoading, refetch } = trpc.transactions.list.useQuery(dateRange);
   const { data: categories = [] } = trpc.categories.list.useQuery();
+  const createTransaction = trpc.transactions.create.useMutation();
 
-  const getCategoryName = (categoryId: number) => {
-    return categories.find(c => c.id === categoryId)?.name || "Unknown";
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.amount || !formData.description) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      await createTransaction.mutateAsync({
+        amount: formData.amount,
+        description: formData.description,
+        type: formData.type,
+        categoryId: parseInt(formData.categoryId)
+      });
+
+      toast.success(`${formData.type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+      setFormData({ amount: "", description: "", type: "expense", categoryId: "1" });
+      setShowAddForm(false);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to add transaction");
+    }
   };
 
-  const getCategoryColor = (categoryId: number) => {
-    return categories.find(c => c.id === categoryId)?.color || "#FF1493";
+  const getCategoryName = (categoryId: number) => {
+    return categories.find(c => c.id === categoryId)?.name || "General";
   };
 
   const formatCurrency = (value: string) => {
@@ -53,24 +78,19 @@ export default function Transactions() {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2
-    }).format(parseFloat(value));
+    }).format(parseFloat(value) || 0);
   };
 
   const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const filteredTransactions = transactions.filter(t =>
-    (t.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
-    getCategoryName(t.categoryId).toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const expenseTotal = filteredTransactions
+  const expenseTotal = transactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-  const incomeTotal = filteredTransactions
+  const incomeTotal = transactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
@@ -87,151 +107,181 @@ export default function Transactions() {
           </p>
         </div>
 
-        {/* Controls */}
-        <div className="card-neon p-6 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex gap-2">
-              {(['daily', 'weekly', 'monthly'] as TimeRange[]).map(range => (
-                <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`px-4 py-2 uppercase text-xs font-bold tracking-wider transition-all ${
-                    timeRange === range
-                      ? 'btn-neon'
-                      : 'border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10'
-                  }`}
-                >
-                  {range}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="btn-neon-cyan flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Transaction
-            </button>
-          </div>
-
-          {/* Search and Filter */}
-          <div className="flex gap-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-neon-cyan" />
-              <input
-                type="text"
-                placeholder="Search transactions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-neon w-full pl-10"
-              />
-            </div>
-            <button className="btn-neon flex items-center gap-2">
-              <Filter className="w-4 h-4" />
-              Filter
-            </button>
-          </div>
-        </div>
-
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="card-neon p-4">
-            <div className="hud-stat-label">Total Income</div>
-            <div className="hud-stat-value text-neon-green">
-              {formatCurrency(incomeTotal.toString())}
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="card-neon p-6">
+            <div className="hud-stat-label text-neon-green">Total Income</div>
+            <div className="hud-stat-value text-neon-green">{formatCurrency(incomeTotal.toString())}</div>
           </div>
-          <div className="card-neon-pink p-4">
+          <div className="card-neon p-6">
             <div className="hud-stat-label text-neon-pink">Total Expenses</div>
-            <div className="hud-stat-value text-neon-pink">
-              {formatCurrency(expenseTotal.toString())}
-            </div>
+            <div className="hud-stat-value text-neon-pink">{formatCurrency(expenseTotal.toString())}</div>
           </div>
-          <div className="card-neon p-4">
-            <div className="hud-stat-label">Net</div>
-            <div className={`hud-stat-value ${incomeTotal - expenseTotal >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
+          <div className="card-neon p-6">
+            <div className="hud-stat-label text-neon-cyan">Net</div>
+            <div className={`hud-stat-value ${(incomeTotal - expenseTotal) >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
               {formatCurrency((incomeTotal - expenseTotal).toString())}
             </div>
           </div>
         </div>
 
-        {/* Transactions Table */}
-        <div className="card-neon overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b-2 border-neon-pink">
-                <tr>
-                  <th className="px-6 py-4 text-left text-neon-pink uppercase text-xs font-bold tracking-wider">Date</th>
-                  <th className="px-6 py-4 text-left text-neon-pink uppercase text-xs font-bold tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-left text-neon-pink uppercase text-xs font-bold tracking-wider">Description</th>
-                  <th className="px-6 py-4 text-right text-neon-pink uppercase text-xs font-bold tracking-wider">Amount</th>
-                  <th className="px-6 py-4 text-center text-neon-pink uppercase text-xs font-bold tracking-wider">Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-neon-cyan">
-                      Loading transactions...
-                    </td>
-                  </tr>
-                ) : filteredTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-neon-cyan/50">
-                      No transactions found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTransactions.map((transaction, idx) => (
-                    <tr
-                      key={transaction.id}
-                      className={`border-t border-neon-cyan/20 hover:bg-neon-cyan/5 transition-colors ${
-                        idx % 2 === 0 ? 'bg-transparent' : 'bg-neon-pink/5'
-                      }`}
-                    >
-                      <td className="px-6 py-4 text-neon-cyan text-sm">
-                        {formatDate(transaction.transactionDate)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className="inline-block px-3 py-1 rounded text-xs font-bold uppercase tracking-wider text-black"
-                          style={{ backgroundColor: getCategoryColor(transaction.categoryId) }}
-                        >
-                          {getCategoryName(transaction.categoryId)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-neon-cyan text-sm">
-                        {transaction.description || '-'}
-                      </td>
-                      <td className={`px-6 py-4 text-right font-bold ${
-                        transaction.type === 'income' ? 'text-neon-green' : 'text-neon-pink'
-                      }`}>
-                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className={`inline-block px-2 py-1 text-xs font-bold uppercase ${
-                          transaction.type === 'income'
-                            ? 'text-neon-green border border-neon-green'
-                            : 'text-neon-pink border border-neon-pink'
-                        }`}>
-                          {transaction.type}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        {/* Time Range Filter */}
+        <div className="card-neon p-6">
+          <div className="flex gap-2 flex-wrap">
+            {(['daily', 'weekly', 'monthly'] as TimeRange[]).map(range => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-4 py-2 uppercase text-xs font-bold tracking-wider transition-all ${
+                  timeRange === range
+                    ? 'btn-neon'
+                    : 'border border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10'
+                }`}
+              >
+                {range}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Export Button */}
-        <div className="flex justify-end">
-          <button className="btn-neon-cyan flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            Export to CSV
+        {/* Add Transaction Form */}
+        {showAddForm && (
+          <div className="card-neon-pink p-6 border-neon-pink">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-neon-pink font-bold uppercase tracking-wider">Add Transaction</h3>
+              <button onClick={() => setShowAddForm(false)} className="text-neon-pink hover:text-neon-cyan">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddTransaction} className="space-y-4">
+              {/* Transaction Type */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Type</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: 'income' })}
+                    className={`flex-1 py-2 px-4 uppercase text-sm font-bold transition-all ${
+                      formData.type === 'income'
+                        ? 'btn-neon-cyan'
+                        : 'border border-neon-cyan text-neon-cyan'
+                    }`}
+                  >
+                    Income
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: 'expense' })}
+                    className={`flex-1 py-2 px-4 uppercase text-sm font-bold transition-all ${
+                      formData.type === 'expense'
+                        ? 'btn-neon'
+                        : 'border border-neon-pink text-neon-pink'
+                    }`}
+                  >
+                    Expense
+                  </button>
+                </div>
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Amount ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Category</label>
+                <select
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                >
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Description</label>
+                <input
+                  type="text"
+                  placeholder="What is this for?"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={createTransaction.isPending}
+                className="w-full btn-neon-cyan uppercase font-bold py-3"
+              >
+                {createTransaction.isPending ? 'Adding...' : 'Add Transaction'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Add Button */}
+        {!showAddForm && (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="btn-neon-cyan flex items-center gap-2 w-full justify-center py-3"
+          >
+            <Plus className="w-5 h-5" />
+            Add New Transaction
           </button>
+        )}
+
+        {/* Transactions List */}
+        <div className="space-y-3">
+          {isLoading ? (
+            <div className="text-center text-neon-cyan py-8">Loading transactions...</div>
+          ) : transactions.length === 0 ? (
+            <div className="card-neon p-8 text-center">
+              <p className="text-neon-cyan">No transactions yet. Add your first transaction to get started!</p>
+            </div>
+          ) : (
+            transactions.map((transaction) => (
+              <div
+                key={transaction.id}
+                className={`card-neon p-4 flex items-center justify-between ${
+                  transaction.type === 'income' ? 'border-neon-green' : 'border-neon-pink'
+                }`}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className={`font-bold text-sm uppercase ${
+                      transaction.type === 'income' ? 'text-neon-green' : 'text-neon-pink'
+                    }`}>
+                      {transaction.type === 'income' ? '↓ INCOME' : '↑ EXPENSE'}
+                    </span>
+                    <span className="text-neon-cyan/70 text-xs">{getCategoryName(transaction.categoryId)}</span>
+                  </div>
+                  <p className="text-neon-cyan">{transaction.description}</p>
+                  <p className="text-neon-cyan/50 text-xs mt-1">{formatDate(transaction.transactionDate)}</p>
+                </div>
+                <div className={`text-right font-bold text-lg ${
+                  transaction.type === 'income' ? 'text-neon-green' : 'text-neon-pink'
+                }`}>
+                  {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </DashboardLayout>
