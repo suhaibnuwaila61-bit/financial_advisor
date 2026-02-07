@@ -1,6 +1,17 @@
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte, sum, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { 
+  InsertUser, 
+  users,
+  categories,
+  transactions,
+  investments,
+  savingsGoals,
+  budgets,
+  notifications,
+  marketData,
+  financialInsights
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +100,273 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Category helpers
+export async function getCategories(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(categories).where(eq(categories.userId, userId));
+}
+
+export async function createCategory(userId: number, name: string, type: "expense" | "income", color?: string, icon?: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.insert(categories).values({
+    userId,
+    name,
+    type,
+    color: color || "#FF1493",
+    icon: icon || "tag"
+  });
+  
+  return result;
+}
+
+// Transaction helpers
+export async function getTransactions(userId: number, startDate?: Date, endDate?: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const conditions = [eq(transactions.userId, userId)];
+  if (startDate) conditions.push(gte(transactions.transactionDate, startDate));
+  if (endDate) conditions.push(lte(transactions.transactionDate, endDate));
+  
+  return await db.select().from(transactions)
+    .where(and(...conditions))
+    .orderBy(desc(transactions.transactionDate));
+}
+
+export async function createTransaction(userId: number, categoryId: number, amount: string, type: "expense" | "income", description?: string, transactionDate?: Date) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.insert(transactions).values({
+    userId,
+    categoryId,
+    amount,
+    type,
+    description,
+    transactionDate: transactionDate || new Date()
+  });
+}
+
+export async function getTotalExpenses(userId: number, startDate?: Date, endDate?: Date) {
+  const db = await getDb();
+  if (!db) return "0";
+  
+  const conditions = [
+    eq(transactions.userId, userId),
+    eq(transactions.type, "expense")
+  ];
+  if (startDate) conditions.push(gte(transactions.transactionDate, startDate));
+  if (endDate) conditions.push(lte(transactions.transactionDate, endDate));
+  
+  const result = await db.select({ total: sum(transactions.amount) })
+    .from(transactions)
+    .where(and(...conditions));
+  
+  return result[0]?.total || "0";
+}
+
+export async function getTotalIncome(userId: number, startDate?: Date, endDate?: Date) {
+  const db = await getDb();
+  if (!db) return "0";
+  
+  const conditions = [
+    eq(transactions.userId, userId),
+    eq(transactions.type, "income")
+  ];
+  if (startDate) conditions.push(gte(transactions.transactionDate, startDate));
+  if (endDate) conditions.push(lte(transactions.transactionDate, endDate));
+  
+  const result = await db.select({ total: sum(transactions.amount) })
+    .from(transactions)
+    .where(and(...conditions));
+  
+  return result[0]?.total || "0";
+}
+
+// Investment helpers
+export async function getInvestments(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(investments).where(eq(investments.userId, userId));
+}
+
+export async function createInvestment(userId: number, symbol: string, assetType: string, quantity: string, purchasePrice: string, currentPrice: string, name: string, purchaseDate?: Date, notes?: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.insert(investments).values({
+    userId,
+    symbol,
+    assetType: assetType as any,
+    quantity,
+    purchasePrice,
+    currentPrice,
+    name,
+    purchaseDate: purchaseDate || new Date(),
+    notes
+  });
+}
+
+export async function updateInvestmentPrice(investmentId: number, currentPrice: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.update(investments)
+    .set({ currentPrice })
+    .where(eq(investments.id, investmentId));
+}
+
+// Savings goals helpers
+export async function getSavingsGoals(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(savingsGoals).where(eq(savingsGoals.userId, userId));
+}
+
+export async function createSavingsGoal(userId: number, name: string, targetAmount: string, deadline?: Date, category?: string, description?: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.insert(savingsGoals).values({
+    userId,
+    name,
+    targetAmount,
+    currentAmount: "0",
+    deadline,
+    category,
+    description
+  });
+}
+
+export async function updateSavingsGoalAmount(goalId: number, currentAmount: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.update(savingsGoals)
+    .set({ currentAmount })
+    .where(eq(savingsGoals.id, goalId));
+}
+
+// Budget helpers
+export async function getBudgets(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(budgets).where(eq(budgets.userId, userId));
+}
+
+export async function createBudget(userId: number, name: string, limitAmount: string, period: "daily" | "weekly" | "monthly" | "yearly", categoryId?: number, startDate?: Date, alertThreshold?: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.insert(budgets).values({
+    userId,
+    name,
+    limitAmount,
+    period,
+    categoryId,
+    startDate: startDate || new Date(),
+    alertThreshold: alertThreshold || 80
+  });
+}
+
+export async function updateBudgetSpent(budgetId: number, spent: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.update(budgets)
+    .set({ spent })
+    .where(eq(budgets.id, budgetId));
+}
+
+// Notification helpers
+export async function getNotifications(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt));
+}
+
+export async function createNotification(userId: number, type: "budget_alert" | "goal_achieved" | "portfolio_change" | "market_alert" | "system", title: string, message: string, relatedId?: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.insert(notifications).values({
+    userId,
+    type,
+    title,
+    message,
+    relatedId
+  });
+}
+
+export async function markNotificationAsRead(notificationId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.update(notifications)
+    .set({ isRead: true })
+    .where(eq(notifications.id, notificationId));
+}
+
+// Market data helpers
+export async function getMarketData(symbol: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(marketData).where(eq(marketData.symbol, symbol)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function upsertMarketData(symbol: string, assetType: "stock" | "crypto", currentPrice: string, priceChange?: string, priceChangePercent?: string, marketCap?: string, volume?: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const existing = await getMarketData(symbol);
+  
+  if (existing) {
+    return await db.update(marketData)
+      .set({ currentPrice, priceChange, priceChangePercent, marketCap, volume })
+      .where(eq(marketData.symbol, symbol));
+  } else {
+    return await db.insert(marketData).values({
+      symbol,
+      assetType,
+      currentPrice,
+      priceChange,
+      priceChangePercent,
+      marketCap,
+      volume
+    });
+  }
+}
+
+// Financial insights helpers
+export async function getFinancialInsights(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(financialInsights)
+    .where(eq(financialInsights.userId, userId))
+    .orderBy(desc(financialInsights.generatedAt));
+}
+
+export async function createFinancialInsight(userId: number, insightType: "spending_pattern" | "investment_recommendation" | "savings_tip" | "budget_analysis", content: string, metadata?: any) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.insert(financialInsights).values({
+    userId,
+    insightType,
+    content,
+    metadata
+  });
+}

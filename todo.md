@@ -1,0 +1,85 @@
+# Financial Advisor & Tracker - Project TODO
+
+## Core Features
+
+### Dashboard & Overview
+- [x] User dashboard with financial overview
+- [x] Display total savings, expenses, and investment portfolio value
+- [x] Quick stats and summary cards
+
+### Expense Tracking
+- [x] Expense tracking system with categorization
+- [x] Daily, weekly, and monthly breakdown views
+- [x] Transaction logging with date, amount, category, and description
+- [x] Category management system for expenses and income
+
+### Investment Portfolio
+- [x] Investment portfolio manager
+- [x] Support for stocks, crypto, and other asset types
+- [x] Current value tracking for each asset
+- [ ] Real-time market data integration for stocks and crypto
+- [x] Automatic portfolio value updates with gains/losses calculation
+
+### Savings & Budget Management
+- [x] Savings goals feature with targets and progress tracking
+- [x] Visual progress indicators for savings goals
+- [x] Budget management tools with spending limits by category
+- [x] Budget period configuration (daily, weekly, monthly)
+
+### Financial Insights & Advisor
+- [ ] Data visualization with charts and graphs
+- [ ] Expense trend analysis
+- [ ] Investment performance visualization
+- [x] LLM-based financial advisor
+- [x] Spending pattern analysis
+- [x] Investment recommendations based on transaction history
+
+### Notifications & Alerts
+- [ ] Notification system for budget limit exceeded alerts
+- [ ] Savings goal achievement notifications
+- [ ] Portfolio value change notifications
+- [ ] Significant market movement alerts
+
+### UI/UX
+- [x] Cyberpunk aesthetic implementation
+- [x] Deep black background with neon pink and cyan typography
+- [x] Bold geometric sans-serif fonts with neon glow effects
+- [x] HUD-style elements with technical lines and corner brackets
+- [x] Responsive design for various screen sizes
+
+## Technical Implementation
+
+### Database Schema
+- [x] Users table (already exists)
+- [x] Transactions table
+- [x] Categories table
+- [x] Investments table
+- [x] Savings goals table
+- [x] Budget table
+- [x] Notifications table
+
+### Backend APIs
+- [x] Expense tracking procedures
+- [x] Investment portfolio procedures
+- [x] Savings goals procedures
+- [x] Budget management procedures
+- [x] Financial advisor LLM integration
+- [ ] Market data fetching procedures
+- [x] Notification procedures
+
+### Frontend Components
+- [x] Dashboard layout with sidebar navigation
+- [x] Expense tracking UI
+- [x] Investment portfolio UI
+- [x] Savings goals UI
+- [x] Budget management UI
+- [ ] Charts and visualizations
+- [x] Financial advisor chat interface
+- [ ] Notification center
+
+### Testing
+- [x] Unit tests for backend procedures (30 tests passing)
+- [ ] Integration tests for key workflows
+
+## Completed Items
+(None yet)
