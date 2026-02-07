@@ -106,3 +106,6 @@
 - [x] Add delete transaction button to transaction list
 
 - [x] Fix category dropdown to show predefined options (Savings, Investment, Expense, etc.)
+
+- [x] Auto-create Savings Goal entry when "Savings" transaction is added (editable from Savings Goals page)
+- [ ] Auto-create Investment entry when "Investment" transaction is added (editable from Investments page)

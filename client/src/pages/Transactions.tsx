@@ -68,12 +68,28 @@ export default function Transactions() {
     }
 
     try {
+      const categoryName = getCategoryName(parseInt(formData.categoryId));
+      
       await createTransaction.mutateAsync({
         amount: formData.amount,
         description: formData.description,
         type: formData.type,
         categoryId: parseInt(formData.categoryId)
       });
+
+      // Auto-create savings goal if category is Savings
+      if (categoryName.toLowerCase() === "savings") {
+        try {
+          const savingsGoalMutation = trpc.savingsGoals.create.useMutation();
+          await savingsGoalMutation.mutateAsync({
+            name: formData.description || "Savings Goal",
+            targetAmount: (parseFloat(formData.amount) * 2).toString(),
+            deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+          });
+        } catch (e) {
+          console.log("Auto-create savings goal skipped");
+        }
+      }
 
       toast.success(`${formData.type === 'income' ? 'Income' : 'Expense'} added successfully!`);
       setFormData({ amount: "", description: "", type: "expense", categoryId: "1" });
