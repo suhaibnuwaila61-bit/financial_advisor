@@ -7,7 +7,7 @@ import * as db from "./db";
 import { advisorRouter } from "./advisor-router";
 
 export const appRouter = router({
-  system: systemRouter,
+  systemCore: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -293,8 +293,29 @@ export const appRouter = router({
     }),
   }),
 
-  // Financial Advisor
+   // Financial Advisor
   advisor: advisorRouter,
+  
+  // System & Reset
+  system: router({
+    resetAllData: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const userId = ctx.user.id;
+        try {
+          // Delete all user data
+          await Promise.all([
+            db.deleteAllTransactions(userId),
+            db.deleteAllInvestments(userId),
+            db.deleteAllSavingsGoals(userId),
+            db.deleteAllBudgets(userId),
+            db.deleteAllNotifications(userId)
+          ]);
+          return { success: true, message: "All data has been reset" };
+        } catch (error) {
+          console.error("Reset failed:", error);
+          throw error;
+        }
+      }),
+  }),
 });
-
 export type AppRouter = typeof appRouter;

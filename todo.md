@@ -138,3 +138,12 @@
 - [x] Add savings goals as category options in transaction form
 - [x] Link transactions to specific savings goals for updates
 - [x] Remove auto-refresh on app load
+
+
+## Phase 13: Dangerous Reset Feature
+
+- [x] Add "Reset All Data" button to settings/dashboard
+- [x] First confirmation dialog warning about data loss
+- [x] Second confirmation dialog with FINAL WARNING
+- [x] Delete all transactions, investments, goals, budgets on confirm
+- [x] Show success message after reset

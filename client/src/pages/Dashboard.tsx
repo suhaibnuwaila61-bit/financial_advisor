@@ -36,6 +36,10 @@ export default function Dashboard() {
   const { data: categories = [] } = trpc.categories.list.useQuery();
   const { data: savingsGoals = [] } = trpc.savingsGoals.list.useQuery();
   const updateSavingsGoal = trpc.savingsGoals.updateAmount.useMutation();
+  const resetAllData = trpc.system.resetAllData.useMutation();
+  
+  const [showResetConfirm1, setShowResetConfirm1] = useState(false);
+  const [showResetConfirm2, setShowResetConfirm2] = useState(false);
 
   useEffect(() => {
     if (overview) {
@@ -129,6 +133,26 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Error adding entry:", error);
       toast.error("Failed to add entry");
+    }
+  };
+
+  const handleResetClick = () => {
+    setShowResetConfirm1(true);
+  };
+
+  const handleResetConfirm1 = () => {
+    setShowResetConfirm1(false);
+    setShowResetConfirm2(true);
+  };
+
+  const handleResetConfirm2 = async () => {
+    try {
+      await resetAllData.mutateAsync();
+      toast.success("All data has been reset!");
+      setShowResetConfirm2(false);
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      toast.error("Failed to reset data");
     }
   };
 
@@ -438,7 +462,75 @@ export default function Dashboard() {
             Use the unified form above to add transactions, investments, savings goals, and budgets. All entries are automatically categorized and tracked across your dashboard.
           </p>
         </div>
+
+        {/* Danger Zone */}
+        <div className="bg-card text-card-foreground rounded-lg border-2 border-red-500 shadow-sm p-6 bg-red-50 dark:bg-red-950/20">
+          <h3 className="font-semibold text-red-600 dark:text-red-400 mb-2">Danger Zone</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Permanently delete all your financial data. This action cannot be undone.
+          </p>
+          <button
+            onClick={handleResetClick}
+            className="px-4 py-2 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 active:scale-95 transition-all"
+          >
+            Reset All Data
+          </button>
+        </div>
       </div>
+
+      {showResetConfirm1 && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card text-card-foreground rounded-lg shadow-lg max-w-sm w-full p-6 border border-border">
+            <h2 className="text-lg font-bold text-foreground mb-4">Confirm Data Reset</h2>
+            <p className="text-muted-foreground mb-6">
+              This will permanently delete ALL your transactions, investments, savings goals, and budgets. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowResetConfirm1(false)}
+                className="flex-1 px-4 py-2 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResetConfirm1}
+                className="flex-1 px-4 py-2 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 transition-all"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResetConfirm2 && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card text-card-foreground rounded-lg shadow-lg max-w-sm w-full p-6 border-2 border-red-500">
+            <h2 className="text-lg font-bold text-red-600 dark:text-red-400 mb-4">FINAL WARNING</h2>
+            <p className="text-muted-foreground mb-2 font-semibold">
+              This is your LAST chance. All data will be permanently deleted.
+            </p>
+            <p className="text-muted-foreground mb-6 text-sm">
+              Click Yes Delete Everything to confirm, or Cancel to go back.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowResetConfirm2(false)}
+                className="flex-1 px-4 py-2 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResetConfirm2}
+                disabled={resetAllData.isPending}
+                className="flex-1 px-4 py-2 rounded-lg font-bold bg-red-700 text-white hover:bg-red-800 transition-all disabled:opacity-50"
+              >
+                {resetAllData.isPending ? "Deleting..." : "Yes, Delete Everything"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

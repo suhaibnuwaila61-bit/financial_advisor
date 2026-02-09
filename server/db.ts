@@ -355,6 +355,56 @@ export async function updateBudgetSpent(budgetId: number, spent: string) {
     .where(eq(budgets.id, budgetId));
 }
 
+export async function deleteAllTransactions(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.delete(transactions).where(eq(transactions.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to delete all transactions:", error);
+  }
+}
+
+export async function deleteAllInvestments(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.delete(investments).where(eq(investments.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to delete all investments:", error);
+  }
+}
+
+export async function deleteAllSavingsGoals(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.delete(savingsGoals).where(eq(savingsGoals.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to delete all savings goals:", error);
+  }
+}
+
+export async function deleteAllBudgets(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.delete(budgets).where(eq(budgets.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to delete all budgets:", error);
+  }
+}
+
+export async function deleteAllNotifications(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.delete(notifications).where(eq(notifications.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to delete all notifications:", error);
+  }
+}
+
 export async function deleteBudget(userId: number, budgetId: number) {
   const db = await getDb();
   if (!db) return null;
