@@ -304,152 +304,155 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Unified Form */}
+        {/* Unified Form Modal */}
         {showUnifiedForm && (
-          <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Add Transaction / Investment / Goal</h2>
-              <button onClick={() => setShowUnifiedForm(false)} className="p-1 hover:bg-muted rounded" title="Close form">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card text-card-foreground rounded-lg border border-border shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-border flex justify-between items-center p-6">
+                <h2 className="text-xl font-bold">Add Transaction / Investment / Goal</h2>
+                <button onClick={() => setShowUnifiedForm(false)} className="p-1 hover:bg-muted rounded" title="Close form">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-            <form onSubmit={handleUnifiedSubmit} className="space-y-4" autoComplete="off">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Type</label>
-                  <select
-                    value={unifiedForm.type}
-                    onChange={(e) => setUnifiedForm({ ...unifiedForm, type: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
-                  >
-                    <option value="income">Income</option>
-                    <option value="expense">Expense</option>
-                    <option value="investment">Investment</option>
-                    <option value="savings">Savings Goal</option>
-                    <option value="budget">Budget</option>
-                  </select>
+              <form onSubmit={handleUnifiedSubmit} className="space-y-4 p-6" autoComplete="off">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Type</label>
+                    <select
+                      value={unifiedForm.type}
+                      onChange={(e) => setUnifiedForm({ ...unifiedForm, type: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                    >
+                      <option value="income">Income</option>
+                      <option value="expense">Expense</option>
+                      <option value="investment">Investment</option>
+                      <option value="savings">Savings Goal</option>
+                      <option value="budget">Budget</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Amount</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={unifiedForm.amount}
+                      onChange={(e) => setUnifiedForm({ ...unifiedForm, amount: e.target.value })}
+                      placeholder="0.00"
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                      autoFocus
+                    />
+                  </div>
+
+                  {(unifiedForm.type === "income" || unifiedForm.type === "expense") && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Category</label>
+                      <select
+                        value={unifiedForm.category}
+                        onChange={(e) => setUnifiedForm({ ...unifiedForm, category: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                      >
+                        <option value="">Select category...</option>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))}
+                        {savingsGoals.map(goal => (
+                          <option key={`GOAL:${goal.id}`} value={`GOAL:${goal.id}`}>📊 {goal.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {unifiedForm.type === "investment" && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Asset Type</label>
+                      <select
+                        value={unifiedForm.assetType}
+                        onChange={(e) => setUnifiedForm({ ...unifiedForm, assetType: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                      >
+                        <option value="stock">Stock</option>
+                        <option value="crypto">Cryptocurrency</option>
+                        <option value="etf">ETF</option>
+                        <option value="mutual_fund">Mutual Fund</option>
+                        <option value="commodity">Commodity</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {unifiedForm.type === "savings" && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Goal Name</label>
+                      <input
+                        type="text"
+                        value={unifiedForm.goalName}
+                        onChange={(e) => setUnifiedForm({ ...unifiedForm, goalName: e.target.value })}
+                        placeholder="e.g., Vacation Fund"
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                      />
+                    </div>
+                  )}
+
+                  {unifiedForm.type === "budget" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Budget Name</label>
+                        <input
+                          type="text"
+                          value={unifiedForm.budgetName}
+                          onChange={(e) => setUnifiedForm({ ...unifiedForm, budgetName: e.target.value })}
+                          placeholder="e.g., Monthly Groceries"
+                          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Period</label>
+                        <select
+                          value={unifiedForm.period}
+                          onChange={(e) => setUnifiedForm({ ...unifiedForm, period: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                        >
+                          <option value="daily">Daily</option>
+                          <option value="weekly">Weekly</option>
+                          <option value="monthly">Monthly</option>
+                          <option value="yearly">Yearly</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Amount</label>
+                  <label className="block text-sm font-medium mb-2">Description</label>
                   <input
-                    type="number"
-                    step="0.01"
-                    value={unifiedForm.amount}
-                    onChange={(e) => setUnifiedForm({ ...unifiedForm, amount: e.target.value })}
-                    placeholder="0.00"
+                    type="text"
+                    value={unifiedForm.description}
+                    onChange={(e) => setUnifiedForm({ ...unifiedForm, description: e.target.value })}
+                    placeholder="Optional details"
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
                   />
                 </div>
 
-                {(unifiedForm.type === "income" || unifiedForm.type === "expense") && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Category</label>
-                    <select
-                      value={unifiedForm.category}
-                      onChange={(e) => setUnifiedForm({ ...unifiedForm, category: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
-                    >
-                      <option value="">Select category...</option>
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
-                      ))}
-                      {savingsGoals.map(goal => (
-                        <option key={`GOAL:${goal.id}`} value={`GOAL:${goal.id}`}>📊 {goal.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {unifiedForm.type === "investment" && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Asset Type</label>
-                    <select
-                      value={unifiedForm.assetType}
-                      onChange={(e) => setUnifiedForm({ ...unifiedForm, assetType: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
-                    >
-                      <option value="stock">Stock</option>
-                      <option value="crypto">Cryptocurrency</option>
-                      <option value="etf">ETF</option>
-                      <option value="mutual_fund">Mutual Fund</option>
-                      <option value="commodity">Commodity</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                )}
-
-                {unifiedForm.type === "savings" && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Goal Name</label>
-                    <input
-                      type="text"
-                      value={unifiedForm.goalName}
-                      onChange={(e) => setUnifiedForm({ ...unifiedForm, goalName: e.target.value })}
-                      placeholder="e.g., Vacation Fund"
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
-                    />
-                  </div>
-                )}
-
-                {unifiedForm.type === "budget" && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Budget Name</label>
-                      <input
-                        type="text"
-                        value={unifiedForm.budgetName}
-                        onChange={(e) => setUnifiedForm({ ...unifiedForm, budgetName: e.target.value })}
-                        placeholder="e.g., Monthly Groceries"
-                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Period</label>
-                      <select
-                        value={unifiedForm.period}
-                        onChange={(e) => setUnifiedForm({ ...unifiedForm, period: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
-                      >
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                      </select>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
-                <input
-                  type="text"
-                  value={unifiedForm.description}
-                  onChange={(e) => setUnifiedForm({ ...unifiedForm, description: e.target.value })}
-                  placeholder="Optional details"
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  type="submit"
-                  disabled={createTransaction.isPending || createInvestment.isPending}
-                  className="flex-1 px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {createTransaction.isPending ? "Adding..." : "Add Entry"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowUnifiedForm(false)}
-                  className="flex-1 px-4 py-2 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={createTransaction.isPending || createInvestment.isPending}
+                    className="flex-1 px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {createTransaction.isPending ? "Adding..." : "Add Entry"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowUnifiedForm(false)}
+                    className="flex-1 px-4 py-2 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
