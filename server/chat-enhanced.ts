@@ -195,27 +195,37 @@ async function createTransactionFromConversation(
   try {
     // Get or create category
     let categories = await db.getCategories(userId);
-    let category = categories.find(c => c.name.toLowerCase() === transactionDetails.category.toLowerCase());
-
-    if (!category) {
+    let categoryId: number | null = null;
+    
+    // Find existing category
+    const existingCategory = categories.find(c => c.name.toLowerCase() === transactionDetails.category.toLowerCase());
+    if (existingCategory) {
+      categoryId = (existingCategory as any).id;
+    } else {
+      // Create new category
       const newCategoryResult = await db.createCategory(
         userId,
         transactionDetails.category,
         transactionDetails.type === "income" ? "income" : "expense"
       );
-      if (newCategoryResult) {
-        category = newCategoryResult as any;
+      
+      // Extract ID from the insert result
+      if (newCategoryResult && (newCategoryResult as any).insertId) {
+        categoryId = (newCategoryResult as any).insertId;
+      } else if (newCategoryResult && (newCategoryResult as any).id) {
+        categoryId = (newCategoryResult as any).id;
       }
     }
 
-    if (!category) {
+    if (!categoryId) {
+      console.error("Failed to get or create category");
       return false;
     }
 
     // Create transaction
     await db.createTransaction(
       userId,
-      (category as any).id,
+      categoryId,
       transactionDetails.amount,
       transactionDetails.type === "income" ? "income" : "expense",
       transactionDetails.description
