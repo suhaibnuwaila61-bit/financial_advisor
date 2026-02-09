@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useState, useRef, useEffect } from "react";
-import { Send, Image, Loader2, X } from "lucide-react";
+import { Send, Image, Loader2, X, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -11,6 +11,7 @@ interface ChatMessage {
   content: string;
   image?: string;
   timestamp: Date;
+  suggestedActions?: string[];
 }
 
 export default function AIChat() {
@@ -22,7 +23,22 @@ export default function AIChat() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const processTransaction = trpc.chat.processTransaction.useMutation();
+  const processMessage = trpc.chat.processMessage.useMutation();
+  const getInsights = trpc.chat.getInsights.useQuery(
+    {
+      conversationHistory: messages
+        .filter(m => m.role === "user" || m.role === "assistant")
+        .map(m => ({
+          role: m.role,
+          content: m.content
+        }))
+    },
+    {
+      enabled: messages.length > 0,
+      refetchInterval: false,
+      staleTime: Infinity
+    }
+  );
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -61,9 +77,13 @@ export default function AIChat() {
     setIsLoading(true);
 
     try {
-      // Send to AI for processing
-      const response = await processTransaction.mutateAsync({
-        description: input,
+      // Send to AI for processing with conversation history
+      const response = await processMessage.mutateAsync({
+        message: input,
+        conversationHistory: messages.map(m => ({
+          role: m.role,
+          content: m.content
+        })),
         imageBase64: selectedImage || undefined
       });
 
@@ -72,17 +92,18 @@ export default function AIChat() {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: response.message,
-        timestamp: new Date()
+        timestamp: new Date(),
+        suggestedActions: response.suggestedActions
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
 
       // Show success if transaction was created
       if (response.transactionCreated) {
-        toast.success("Transaction created successfully!");
+        toast.success("✅ Transaction created successfully!");
       }
     } catch (error) {
-      toast.error("Failed to process transaction");
+      toast.error("Failed to process message");
       const errorMessage: ChatMessage = {
         id: (Date.now() + 2).toString(),
         role: "assistant",
@@ -95,15 +116,19 @@ export default function AIChat() {
     }
   };
 
+  const handleSuggestedAction = (action: string) => {
+    setInput(action);
+  };
+
   return (
     <DashboardLayout>
       <div className="h-screen flex flex-col space-y-4">
         {/* Header */}
         <div className="flex justify-between items-start border-b border-border pb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">AI Transaction Assistant</h1>
+            <h1 className="text-3xl font-bold text-foreground">AI Financial Assistant</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Send photos of receipts or describe transactions, and I'll help you record them
+              Chat naturally about your finances. I understand savings goals, investments, expenses, and more.
             </p>
           </div>
         </div>
@@ -113,45 +138,68 @@ export default function AIChat() {
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full text-center">
               <div>
-                <Image className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  Start by uploading a receipt photo or describing a transaction
+                <Lightbulb className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">
+                  Start a conversation about your finances
                 </p>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>💬 "I earn $5000 a month and want to save $1000"</p>
+                  <p>📸 "Upload a receipt and I'll help categorize it"</p>
+                  <p>📊 "Tell me about my spending patterns"</p>
+                </div>
               </div>
             </div>
           ) : (
             <>
               {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                >
+                <div key={message.id}>
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
-                    }`}
+                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
-                    {message.image && (
-                      <img
-                        src={message.image}
-                        alt="Transaction"
-                        className="max-w-full h-auto rounded mb-2"
-                      />
-                    )}
-                    <p className="text-sm">{message.content}</p>
-                    <p className="text-xs opacity-70 mt-1">
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground border border-border"
+                      }`}
+                    >
+                      {message.image && (
+                        <img
+                          src={message.image}
+                          alt="Transaction"
+                          className="max-w-full h-auto rounded mb-2"
+                        />
+                      )}
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-xs opacity-70 mt-1">
+                        {message.timestamp.toLocaleTimeString()}
+                      </p>
+                    </div>
                   </div>
+                  
+                  {/* Suggested Actions */}
+                  {message.suggestedActions && message.suggestedActions.length > 0 && (
+                    <div className="flex justify-start mt-2 ml-0">
+                      <div className="space-y-2 max-w-md">
+                        {message.suggestedActions.map((action, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleSuggestedAction(action)}
+                            className="block w-full text-left px-3 py-2 text-sm rounded-lg border border-border hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                          >
+                            💡 {action}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-muted text-muted-foreground px-4 py-3 rounded-lg flex items-center gap-2">
+                  <div className="bg-muted text-muted-foreground px-4 py-3 rounded-lg flex items-center gap-2 border border-border">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">Processing...</span>
+                    <span className="text-sm">Thinking...</span>
                   </div>
                 </div>
               )}
@@ -170,8 +218,8 @@ export default function AIChat() {
                 className="w-20 h-20 object-cover rounded"
               />
               <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">Image selected</p>
-                <p className="text-xs text-muted-foreground">Ready to describe the transaction</p>
+                <p className="text-sm font-medium text-foreground">Receipt photo selected</p>
+                <p className="text-xs text-muted-foreground">Describe what you're uploading</p>
               </div>
               <button
                 onClick={() => setSelectedImage(null)}
@@ -206,7 +254,7 @@ export default function AIChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && !isLoading && handleSendMessage()}
-              placeholder="Describe the transaction or ask for help..."
+              placeholder="Tell me about your finances, savings goals, or upload a receipt..."
               className="flex-1 px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               disabled={isLoading}
             />
@@ -224,7 +272,7 @@ export default function AIChat() {
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            💡 Tip: Upload a receipt photo and describe what you bought, or just describe the transaction
+            💡 Tip: Be specific about amounts, goals, and timeframes. I understand complex financial conversations!
           </p>
         </div>
       </div>

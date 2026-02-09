@@ -190,3 +190,15 @@
 - [x] Automatically create transactions from AI responses
 - [x] Display chat history with user messages and AI responses
 - [x] Add visual feedback for processing and transaction creation
+
+
+## Phase 18: Enhanced AI Chat with Context Awareness
+
+- [x] Support multi-turn conversations with full message history
+- [x] Add conversation context awareness (remember user's financial situation)
+- [x] Implement financial advisor system prompt for better understanding
+- [x] Parse complex financial discussions (savings goals, investment plans)
+- [x] Extract and track financial parameters from conversations
+- [x] Provide intelligent follow-up suggestions
+- [x] Handle ambiguous requests with clarifying questions
+- [x] Maintain conversation state across multiple messages

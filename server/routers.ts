@@ -25,7 +25,6 @@ export const appRouter = router({
     getOverview: protectedProcedure.query(async ({ ctx }) => {
       const userId = ctx.user.id;
       
-      // Get current month dates
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -37,7 +36,6 @@ export const appRouter = router({
         db.getSavingsGoals(userId)
       ]);
       
-      // Calculate portfolio value
       let portfolioValue = "0";
       if (investments.length > 0) {
         portfolioValue = investments.reduce((sum, inv) => {
@@ -46,7 +44,6 @@ export const appRouter = router({
         }, 0).toString();
       }
       
-      // Calculate total savings
       let totalSavings = "0";
       if (savingsGoals.length > 0) {
         totalSavings = savingsGoals.reduce((sum, goal) => {
@@ -268,38 +265,54 @@ export const appRouter = router({
       }),
   }),
 
-  // AI Chat
+  // AI Chat - Enhanced with conversation history
   chat: router({
-    processTransaction: protectedProcedure
+    processMessage: protectedProcedure
       .input(z.object({
-        description: z.string(),
+        message: z.string(),
+        conversationHistory: z.array(z.object({
+          role: z.enum(["user", "assistant"]),
+          content: z.string()
+        })).optional(),
         imageBase64: z.string().optional()
       }))
       .mutation(async ({ ctx, input }) => {
+        const chatEnhanced = await import("./chat-enhanced");
+        
         try {
-          // Parse transaction from description and image
-          const parseResult = await chat.parseTransactionFromDescription(input.description, input.imageBase64);
+          const result = await chatEnhanced.processFinancialConversation(
+            ctx.user.id,
+            input.message,
+            input.conversationHistory || [],
+            input.imageBase64
+          );
           
-          if (!parseResult.transactionData) {
-            return {
-              message: parseResult.message,
-              transactionCreated: false
-            };
-          }
-          
-          // Create the transaction
-          const createResult = await chat.createTransactionFromParsedData(ctx.user.id, parseResult.transactionData);
-          
-          return {
-            message: createResult.message,
-            transactionCreated: createResult.success
-          };
+          return result;
         } catch (error) {
-          console.error("Error processing transaction:", error);
+          console.error("Error processing chat message:", error);
           return {
-            message: "Sorry, I encountered an error processing your request. Please try again.",
+            message: "Sorry, I encountered an error. Please try again.",
             transactionCreated: false
           };
+        }
+      }),
+
+    getInsights: protectedProcedure
+      .input(z.object({
+        conversationHistory: z.array(z.object({
+          role: z.enum(["user", "assistant"]),
+          content: z.string()
+        }))
+      }))
+      .query(async ({ ctx, input }) => {
+        const chatEnhanced = await import("./chat-enhanced");
+        
+        try {
+          const insights = await chatEnhanced.extractFinancialInsights(input.conversationHistory);
+          return insights;
+        } catch (error) {
+          console.error("Error extracting insights:", error);
+          return { summary: "Unable to extract insights" };
         }
       }),
   }),
@@ -310,7 +323,6 @@ export const appRouter = router({
       .mutation(async ({ ctx }) => {
         const userId = ctx.user.id;
         try {
-          // Delete all user data
           await Promise.all([
             db.deleteAllTransactions(userId),
             db.deleteAllInvestments(userId),
