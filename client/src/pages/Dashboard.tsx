@@ -1,10 +1,10 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
-import { TrendingUp, TrendingDown, Target, Wallet, Plus, X } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, Wallet, Plus, X, DollarSign, PieChart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -19,7 +19,7 @@ export default function Dashboard() {
   });
 
   const [unifiedForm, setUnifiedForm] = useState({
-    type: "expense", // expense, income, investment, savings, budget
+    type: "expense",
     amount: "",
     description: "",
     category: "",
@@ -35,11 +35,22 @@ export default function Dashboard() {
   const createBudget = trpc.budgets.create.useMutation();
   const { data: categories = [] } = trpc.categories.list.useQuery();
   const { data: savingsGoals = [] } = trpc.savingsGoals.list.useQuery();
+  const { data: lendings = [] } = trpc.lendings.list.useQuery();
+  const { data: investments = [] } = trpc.investments.list.useQuery();
   const updateSavingsGoal = trpc.savingsGoals.updateAmount.useMutation();
   const resetAllData = trpc.system.resetAllData.useMutation();
   
   const [showResetConfirm1, setShowResetConfirm1] = useState(false);
   const [showResetConfirm2, setShowResetConfirm2] = useState(false);
+
+  // Calculate net worth and position
+  const totalAssets = parseFloat(stats.totalIncome) + parseFloat(stats.totalSavings) + parseFloat(stats.portfolioValue);
+  const totalLiabilities = parseFloat(stats.totalExpenses) + (lendings?.filter(l => l.type === "borrowed").reduce((sum, l) => sum + parseFloat(l.amount), 0) || 0);
+  const netWorth = totalAssets - totalLiabilities;
+  
+  const totalLent = lendings?.filter(l => l.type === "lent").reduce((sum, l) => sum + parseFloat(l.amount), 0) || 0;
+  const totalBorrowed = lendings?.filter(l => l.type === "borrowed").reduce((sum, l) => sum + parseFloat(l.amount), 0) || 0;
+  const netLendingPosition = totalLent - totalBorrowed;
 
   useEffect(() => {
     if (overview) {
@@ -62,21 +73,18 @@ export default function Dashboard() {
 
     try {
       if (unifiedForm.type === "expense" || unifiedForm.type === "income") {
-        // Check if category is a savings goal
         let categoryId = 1;
         if (unifiedForm.category.startsWith("GOAL:")) {
-          // Extract goal ID and update the savings goal
           const goalId = parseInt(unifiedForm.category.split(":")[1]);
           const goal = savingsGoals.find(g => g.id === goalId);
           if (goal) {
-            // Update savings goal with new amount
             const newAmount = (parseFloat(goal.currentAmount || "0") + parseFloat(unifiedForm.amount)).toString();
             await updateSavingsGoal.mutateAsync({
               goalId: goalId,
               currentAmount: newAmount
             });
             toast.success(`Savings goal "${goal.name}" updated!`);
-            return; // Don't create transaction, just update goal
+            return;
           }
         } else {
           categoryId = categories.find(c => c.name === unifiedForm.category)?.id || 1;
@@ -100,20 +108,18 @@ export default function Dashboard() {
         });
         toast.success("Investment added!");
       } else if (unifiedForm.type === "savings") {
-        // Create a savings goal with the transaction amount
         await createSavingsGoal.mutateAsync({
-          name: unifiedForm.goalName || `Savings - ${new Date().toLocaleDateString()}`,
-          targetAmount: (parseFloat(unifiedForm.amount) * 2).toString(), // Target is 2x the amount
-          currentAmount: unifiedForm.amount, // Current is the amount entered
+          name: unifiedForm.goalName || "Savings Goal",
+          targetAmount: unifiedForm.amount,
+          currentAmount: unifiedForm.amount,
           deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
         });
-        toast.success("Savings goal created with target updated!");
+        toast.success("Savings goal created!");
       } else if (unifiedForm.type === "budget") {
         await createBudget.mutateAsync({
           name: unifiedForm.budgetName || "Budget",
           limitAmount: unifiedForm.amount,
-          period: unifiedForm.period as any,
-          categoryId: unifiedForm.category ? parseInt(unifiedForm.category) : undefined,
+          period: unifiedForm.period as "daily" | "weekly" | "monthly" | "yearly",
           alertThreshold: 80
         });
         toast.success("Budget created!");
@@ -131,8 +137,7 @@ export default function Dashboard() {
       });
       setShowUnifiedForm(false);
     } catch (error) {
-      console.error("Error adding entry:", error);
-      toast.error("Failed to add entry");
+      toast.error("Failed to create entry");
     }
   };
 
@@ -140,333 +145,343 @@ export default function Dashboard() {
     setShowResetConfirm1(true);
   };
 
-  const handleResetConfirm1 = () => {
+  const handleResetConfirm = async () => {
     setShowResetConfirm1(false);
     setShowResetConfirm2(true);
   };
 
-  const handleResetConfirm2 = async () => {
+  const handleResetFinal = async () => {
     try {
       await resetAllData.mutateAsync();
       toast.success("All data has been reset!");
       setShowResetConfirm2(false);
-      setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       toast.error("Failed to reset data");
     }
   };
 
-  const formatCurrency = (value: string) => {
-    const num = parseFloat(value);
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(num);
-  };
-
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="border-b border-border pb-6">
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            Financial Dashboard
-          </h1>
-          <p className="text-muted-foreground text-sm uppercase tracking-wide">
-            Welcome back, {user?.name || "User"}
-          </p>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-foreground">Financial Dashboard</h1>
+          <button
+            onClick={() => setShowUnifiedForm(!showUnifiedForm)}
+            className="px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add Entry
+          </button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="stat-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="stat-label">Monthly Income</div>
-                <div className="stat-value text-green-600 dark:text-green-400">
-                  {formatCurrency(stats.totalIncome)}
-                </div>
-              </div>
-              <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400 opacity-20" />
+        {/* Net Worth Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-lg p-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold opacity-90">Net Worth</h2>
+              <DollarSign className="w-8 h-8 opacity-30" />
             </div>
+            <p className="text-4xl font-bold mb-2">${netWorth.toFixed(2)}</p>
+            <p className="text-sm opacity-80">Total Assets - Total Liabilities</p>
           </div>
 
-          <div className="stat-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="stat-label">Monthly Expenses</div>
-                <div className="stat-value text-red-600 dark:text-red-400">
-                  {formatCurrency(stats.totalExpenses)}
-                </div>
-              </div>
-              <TrendingDown className="w-8 h-8 text-red-600 dark:text-red-400 opacity-20" />
+          <div className="bg-gradient-to-br from-green-600 to-green-700 text-white rounded-lg shadow-lg p-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold opacity-90">Net Lending Position</h2>
+              <Wallet className="w-8 h-8 opacity-30" />
             </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="stat-label">Portfolio Value</div>
-                <div className="stat-value text-blue-600 dark:text-blue-400">
-                  {formatCurrency(stats.portfolioValue)}
-                </div>
-              </div>
-              <Wallet className="w-8 h-8 text-blue-600 dark:text-blue-400 opacity-20" />
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="stat-label">Total Savings</div>
-                <div className="stat-value text-purple-600 dark:text-purple-400">
-                  {formatCurrency(stats.totalSavings)}
-                </div>
-              </div>
-              <Target className="w-8 h-8 text-purple-600 dark:text-purple-400 opacity-20" />
-            </div>
+            <p className={`text-4xl font-bold mb-2 ${netLendingPosition >= 0 ? 'text-green-200' : 'text-red-200'}`}>
+              ${netLendingPosition.toFixed(2)}
+            </p>
+            <p className="text-sm opacity-80">Money Lent - Money Borrowed</p>
           </div>
         </div>
 
-        {/* Unified Input Form */}
-        {showUnifiedForm ? (
-          <div className="bg-card text-card-foreground rounded-lg border-2 border-primary shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="section-heading">Add New Entry</h2>
-              <button
-                onClick={() => setShowUnifiedForm(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors p-2"
-              >
+        {/* Financial Position Breakdown */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-muted-foreground">Total Income</p>
+              <TrendingUp className="w-5 h-5 text-green-600" />
+            </div>
+            <p className="text-2xl font-bold text-green-600">${parseFloat(stats.totalIncome).toFixed(2)}</p>
+          </div>
+
+          <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-muted-foreground">Total Expenses</p>
+              <TrendingDown className="w-5 h-5 text-red-600" />
+            </div>
+            <p className="text-2xl font-bold text-red-600">${parseFloat(stats.totalExpenses).toFixed(2)}</p>
+          </div>
+
+          <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-muted-foreground">Portfolio Value</p>
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+            </div>
+            <p className="text-2xl font-bold text-blue-600">${parseFloat(stats.portfolioValue).toFixed(2)}</p>
+          </div>
+
+          <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-muted-foreground">Total Savings</p>
+              <Target className="w-5 h-5 text-purple-600" />
+            </div>
+            <p className="text-2xl font-bold text-purple-600">${parseFloat(stats.totalSavings).toFixed(2)}</p>
+          </div>
+        </div>
+
+        {/* Assets vs Liabilities */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <PieChart className="w-5 h-5" />
+              Total Assets
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Income</span>
+                <span className="font-semibold">${parseFloat(stats.totalIncome).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Savings</span>
+                <span className="font-semibold">${parseFloat(stats.totalSavings).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Investments</span>
+                <span className="font-semibold">${parseFloat(stats.portfolioValue).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center pt-3 border-t border-border">
+                <span className="font-bold">Total Assets</span>
+                <span className="text-lg font-bold text-green-600">${totalAssets.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <PieChart className="w-5 h-5" />
+              Total Liabilities
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Expenses</span>
+                <span className="font-semibold">${parseFloat(stats.totalExpenses).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Money Borrowed</span>
+                <span className="font-semibold">${totalBorrowed.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center pt-3 border-t border-border">
+                <span className="font-bold">Total Liabilities</span>
+                <span className="text-lg font-bold text-red-600">${totalLiabilities.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Lending Summary */}
+        {lendings && lendings.length > 0 && (
+          <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
+            <h3 className="text-lg font-bold mb-4">Lending & Borrowing Summary</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Total Lent</p>
+                <p className="text-2xl font-bold text-green-600">${totalLent.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Total Borrowed</p>
+                <p className="text-2xl font-bold text-red-600">${totalBorrowed.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Net Position</p>
+                <p className={`text-2xl font-bold ${netLendingPosition >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  ${netLendingPosition.toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Unified Form */}
+        {showUnifiedForm && (
+          <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Add Transaction / Investment / Goal</h2>
+              <button onClick={() => setShowUnifiedForm(false)} className="p-1 hover:bg-muted rounded">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleUnifiedSubmit} className="space-y-4">
-              {/* Type Selector */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Entry Type
-                    </label>
-                    <select
-                      value={unifiedForm.type}
-                      onChange={(e) => setUnifiedForm({ ...unifiedForm, type: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                    >
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                  <option value="investment">Investment</option>
-                  <option value="savings">Savings Goal</option>
-                  <option value="budget">Budget</option>
-                </select>
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Type</label>
+                  <select
+                    value={unifiedForm.type}
+                    onChange={(e) => setUnifiedForm({ ...unifiedForm, type: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                  >
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                    <option value="investment">Investment</option>
+                    <option value="savings">Savings Goal</option>
+                    <option value="budget">Budget</option>
+                  </select>
+                </div>
 
-              {/* Amount */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Amount ($)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={unifiedForm.amount}
-                      onChange={(e) => setUnifiedForm({ ...unifiedForm, amount: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                    />
-              </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Amount</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={unifiedForm.amount}
+                    onChange={(e) => setUnifiedForm({ ...unifiedForm, amount: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                  />
+                </div>
 
-              {/* Conditional Fields */}
-              {(unifiedForm.type === "expense" || unifiedForm.type === "income") && (
-                <>
+                {(unifiedForm.type === "income" || unifiedForm.type === "expense") && (
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Category
-                    </label>
+                    <label className="block text-sm font-medium mb-2">Category</label>
                     <select
                       value={unifiedForm.category}
                       onChange={(e) => setUnifiedForm({ ...unifiedForm, category: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
                     >
-                      <option value="">Select Category</option>
-                      <optgroup label="Regular Categories">
-                        {categories.map(cat => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
-                        <option value="General">General</option>
-                      </optgroup>
-                      <optgroup label="Savings Goals">
-                        {savingsGoals.map(goal => (
-                          <option key={goal.id} value={`GOAL:${goal.id}`}>{goal.name}</option>
-                        ))}
-                      </optgroup>
+                      <option value="">Select category...</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      ))}
+                      {savingsGoals.map(goal => (
+                        <option key={`GOAL:${goal.id}`} value={`GOAL:${goal.id}`}>📊 {goal.name}</option>
+                      ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Description
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="What is this for?"
-                      value={unifiedForm.description}
-                      onChange={(e) => setUnifiedForm({ ...unifiedForm, description: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                    />
-                  </div>
-                </>
-              )}
+                )}
 
-              {unifiedForm.type === "investment" && (
-                <>
+                {unifiedForm.type === "investment" && (
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Asset Type
-                    </label>
+                    <label className="block text-sm font-medium mb-2">Asset Type</label>
                     <select
                       value={unifiedForm.assetType}
                       onChange={(e) => setUnifiedForm({ ...unifiedForm, assetType: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
                     >
                       <option value="stock">Stock</option>
-                      <option value="crypto">Crypto</option>
+                      <option value="crypto">Cryptocurrency</option>
                       <option value="etf">ETF</option>
-                      <option value="commodity">Commodity</option>
                       <option value="mutual_fund">Mutual Fund</option>
+                      <option value="commodity">Commodity</option>
                       <option value="other">Other</option>
                     </select>
                   </div>
+                )}
+
+                {unifiedForm.type === "savings" && (
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Investment Name
-                    </label>
+                    <label className="block text-sm font-medium mb-2">Goal Name</label>
                     <input
                       type="text"
-                      placeholder="e.g., Apple Stock, Bitcoin"
-                      value={unifiedForm.description}
-                      onChange={(e) => setUnifiedForm({ ...unifiedForm, description: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                      value={unifiedForm.goalName}
+                      onChange={(e) => setUnifiedForm({ ...unifiedForm, goalName: e.target.value })}
+                      placeholder="e.g., Vacation Fund"
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
                     />
                   </div>
-                </>
-              )}
+                )}
 
-              {unifiedForm.type === "savings" && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Goal Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Vacation Fund, Emergency Fund"
-                    value={unifiedForm.goalName}
-                    onChange={(e) => setUnifiedForm({ ...unifiedForm, goalName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                  />
-                </div>
-              )}
+                {unifiedForm.type === "budget" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Budget Name</label>
+                      <input
+                        type="text"
+                        value={unifiedForm.budgetName}
+                        onChange={(e) => setUnifiedForm({ ...unifiedForm, budgetName: e.target.value })}
+                        placeholder="e.g., Monthly Groceries"
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Period</label>
+                      <select
+                        value={unifiedForm.period}
+                        onChange={(e) => setUnifiedForm({ ...unifiedForm, period: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                      >
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+              </div>
 
-              {unifiedForm.type === "budget" && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Budget Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., Food Budget, Entertainment"
-                      value={unifiedForm.budgetName}
-                      onChange={(e) => setUnifiedForm({ ...unifiedForm, budgetName: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Period
-                    </label>
-                    <select
-                      value={unifiedForm.period}
-                      onChange={(e) => setUnifiedForm({ ...unifiedForm, period: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                    >
-                      <option value="daily">Daily</option>
-                      <option value="weekly">Weekly</option>
-                      <option value="monthly">Monthly</option>
-                      <option value="yearly">Yearly</option>
-                    </select>
-                  </div>
-                </>
-              )}
+              <div>
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <input
+                  type="text"
+                  value={unifiedForm.description}
+                  onChange={(e) => setUnifiedForm({ ...unifiedForm, description: e.target.value })}
+                  placeholder="Optional details"
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground"
+                />
+              </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={createTransaction.isPending || createInvestment.isPending}
-                className="w-full px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-50"
-              >
-                {createTransaction.isPending ? "Adding..." : "Add Entry"}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={createTransaction.isPending || createInvestment.isPending}
+                  className="flex-1 px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {createTransaction.isPending ? "Adding..." : "Add Entry"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowUnifiedForm(false)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
-        ) : (
-          <button
-            onClick={() => setShowUnifiedForm(true)}
-            className="w-full px-4 py-3 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Add Transaction / Investment / Goal
-          </button>
         )}
 
-        {/* Quick Actions */}
+        {/* Quick Navigation */}
         <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
-          <h2 className="section-heading mb-4">Quick Navigation</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => navigate("/transactions")}
-              className="px-4 py-3 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
-            >
+          <h3 className="text-lg font-bold mb-4">Quick Navigation</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <button onClick={() => navigate("/transactions")} className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-all text-sm font-medium">
               View Transactions
             </button>
-            <button
-              onClick={() => navigate("/investments")}
-              className="px-4 py-3 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
-            >
+            <button onClick={() => navigate("/investments")} className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-all text-sm font-medium">
               Manage Investments
             </button>
-            <button
-              onClick={() => navigate("/savings-goals")}
-              className="px-4 py-3 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
-            >
+            <button onClick={() => navigate("/savings-goals")} className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-all text-sm font-medium">
               Savings Goals
             </button>
-            <button
-              onClick={() => navigate("/budgets")}
-              className="px-4 py-3 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
-            >
+            <button onClick={() => navigate("/budgets")} className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-all text-sm font-medium">
               Budgets
             </button>
-            <button
-              onClick={() => navigate("/advisor")}
-              className="px-4 py-3 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
-            >
+            <button onClick={() => navigate("/lendings")} className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-all text-sm font-medium">
+              Lendings
+            </button>
+            <button onClick={() => navigate("/advisor")} className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-all text-sm font-medium">
               AI Advisor
             </button>
           </div>
         </div>
 
-        {/* Info Card */}
-        <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-          <h3 className="font-semibold text-foreground mb-2">💡 Getting Started</h3>
-          <p className="text-sm text-muted-foreground">
-            Use the unified form above to add transactions, investments, savings goals, and budgets. All entries are automatically categorized and tracked across your dashboard.
-          </p>
-        </div>
-
         {/* Danger Zone */}
-        <div className="bg-card text-card-foreground rounded-lg border-2 border-red-500 shadow-sm p-6 bg-red-50 dark:bg-red-950/20">
-          <h3 className="font-semibold text-red-600 dark:text-red-400 mb-2">Danger Zone</h3>
-          <p className="text-sm text-muted-foreground mb-4">
+        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-lg p-6">
+          <h3 className="text-lg font-bold text-red-900 dark:text-red-400 mb-2">⚠️ Danger Zone</h3>
+          <p className="text-sm text-red-800 dark:text-red-300 mb-4">
             Permanently delete all your financial data. This action cannot be undone.
           </p>
           <button
@@ -476,61 +491,59 @@ export default function Dashboard() {
             Reset All Data
           </button>
         </div>
+
+        {/* Reset Confirmation Dialogs */}
+        {showResetConfirm1 && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-card text-card-foreground rounded-lg p-6 max-w-sm w-full mx-4 border border-border">
+              <h3 className="text-lg font-bold mb-4">Are you sure?</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                This will permanently delete all your transactions, investments, savings goals, budgets, and lending records.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleResetConfirm}
+                  className="flex-1 px-4 py-2 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700"
+                >
+                  Continue
+                </button>
+                <button
+                  onClick={() => setShowResetConfirm1(false)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-border hover:bg-muted"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showResetConfirm2 && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-card text-card-foreground rounded-lg p-6 max-w-sm w-full mx-4 border border-border">
+              <h3 className="text-lg font-bold text-red-600 mb-4">⚠️ FINAL WARNING</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                This is your final chance. All data will be permanently deleted and cannot be recovered.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleResetFinal}
+                  disabled={resetAllData.isPending}
+                  className="flex-1 px-4 py-2 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {resetAllData.isPending ? "Resetting..." : "Delete Everything"}
+                </button>
+                <button
+                  onClick={() => setShowResetConfirm2(false)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-border hover:bg-muted"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {showResetConfirm1 && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card text-card-foreground rounded-lg shadow-lg max-w-sm w-full p-6 border border-border">
-            <h2 className="text-lg font-bold text-foreground mb-4">Confirm Data Reset</h2>
-            <p className="text-muted-foreground mb-6">
-              This will permanently delete ALL your transactions, investments, savings goals, and budgets. This action cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowResetConfirm1(false)}
-                className="flex-1 px-4 py-2 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleResetConfirm1}
-                className="flex-1 px-4 py-2 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 transition-all"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showResetConfirm2 && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card text-card-foreground rounded-lg shadow-lg max-w-sm w-full p-6 border-2 border-red-500">
-            <h2 className="text-lg font-bold text-red-600 dark:text-red-400 mb-4">FINAL WARNING</h2>
-            <p className="text-muted-foreground mb-2 font-semibold">
-              This is your LAST chance. All data will be permanently deleted.
-            </p>
-            <p className="text-muted-foreground mb-6 text-sm">
-              Click Yes Delete Everything to confirm, or Cancel to go back.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowResetConfirm2(false)}
-                className="flex-1 px-4 py-2 rounded-lg border border-border bg-transparent text-foreground hover:bg-muted transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleResetConfirm2}
-                disabled={resetAllData.isPending}
-                className="flex-1 px-4 py-2 rounded-lg font-bold bg-red-700 text-white hover:bg-red-800 transition-all disabled:opacity-50"
-              >
-                {resetAllData.isPending ? "Deleting..." : "Yes, Delete Everything"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </DashboardLayout>
   );
 }

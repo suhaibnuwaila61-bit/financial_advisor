@@ -158,3 +158,15 @@
 - [x] Track repayment status for loans
 - [ ] Display lending/borrowing summary on dashboard
 - [x] Add lending/borrowing management page
+
+
+## Phase 15: Enhanced Dashboard with Net Worth & Position Tracking
+
+- [x] Add net worth calculation (total assets - total liabilities)
+- [x] Display net worth prominently on dashboard
+- [x] Add financial position breakdown (assets vs debts)
+- [x] Show total income vs total expenses summary
+- [x] Add lending/borrowing summary to dashboard
+- [ ] Display category breakdown for expenses and income
+- [ ] Add position change indicator (up/down from previous period)
+- [ ] Show key financial metrics and ratios
