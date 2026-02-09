@@ -158,7 +158,7 @@ function DashboardLayoutContent({
 
   return (
     <>
-      <div className="relative" ref={sidebarRef}>
+      <div className="relative" ref={sidebarRef} style={{ width: `var(--sidebar-width, ${DEFAULT_WIDTH}px)` }}>
         <Sidebar
           collapsible="icon"
           className="border-r-0"
@@ -238,12 +238,12 @@ function DashboardLayoutContent({
           </SidebarFooter>
         </Sidebar>
         <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors ${isCollapsed ? "hidden" : ""}`}
+          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors pointer-events-none ${isCollapsed ? "hidden" : ""}`}
           onMouseDown={() => {
             if (isCollapsed) return;
             setIsResizing(true);
           }}
-          style={{ zIndex: 50 }}
+          style={{ zIndex: 10 }}
         />
       </div>
 

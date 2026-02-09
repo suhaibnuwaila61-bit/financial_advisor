@@ -170,3 +170,8 @@
 - [ ] Display category breakdown for expenses and income
 - [ ] Add position change indicator (up/down from previous period)
 - [ ] Show key financial metrics and ratios
+
+
+## Bug Fixes - Phase 16
+
+- [x] Fix: "Add Entry" button not working/opening form (z-index overlay issue resolved)
