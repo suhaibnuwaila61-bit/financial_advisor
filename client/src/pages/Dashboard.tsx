@@ -162,11 +162,11 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="w-full max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-foreground">Financial Dashboard</h1>
           <button
-            onClick={() => setShowUnifiedForm(!showUnifiedForm)}
+            onClick={() => setShowUnifiedForm(true)}
             className="px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
@@ -309,12 +309,12 @@ export default function Dashboard() {
           <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Add Transaction / Investment / Goal</h2>
-              <button onClick={() => setShowUnifiedForm(false)} className="p-1 hover:bg-muted rounded">
+              <button onClick={() => setShowUnifiedForm(false)} className="p-1 hover:bg-muted rounded" title="Close form">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleUnifiedSubmit} className="space-y-4">
+            <form onSubmit={handleUnifiedSubmit} className="space-y-4" autoComplete="off">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Type</label>

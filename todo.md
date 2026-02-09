@@ -175,3 +175,7 @@
 ## Bug Fixes - Phase 16
 
 - [x] Fix: "Add Entry" button not working/opening form (z-index overlay issue resolved)
+
+- [x] Fix dashboard content positioning (too far left)
+- [x] Change Add Entry button to directly show form (not toggle)
+- [ ] Auto-focus first input field when form opens
