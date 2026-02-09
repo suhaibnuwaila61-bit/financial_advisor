@@ -117,3 +117,15 @@
 
 - [x] Fix budget creation form - add working inputs and submit handler
 - [x] Add delete button to budgets with confirmation dialog
+
+
+## Phase 11: Unified Input & Modern Theme
+
+- [x] Create unified transaction input modal/form
+- [x] Add transaction type selector (Expense, Income, Investment, Savings, Budget)
+- [x] Smart auto-routing: transaction type determines where data goes
+- [x] Update theme from cyberpunk/neon to modern aesthetic
+- [x] Simplify color palette (remove neon pink/cyan, use modern colors)
+- [x] Update typography and spacing for modern look
+- [ ] Update all pages with new theme (Dashboard done, others pending)
+- [x] Test smart routing on all transaction types
