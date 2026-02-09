@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Target, Wallet, Brain, Handshake } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Target, Wallet, Brain, Handshake, MessageCircle } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -34,6 +34,7 @@ const menuItems = [
   { icon: Target, label: "Savings Goals", path: "/savings-goals" },
   { icon: Users, label: "Budgets", path: "/budgets" },
   { icon: Handshake, label: "Lendings", path: "/lendings" },
+  { icon: MessageCircle, label: "AI Chat", path: "/ai-chat" },
   { icon: Brain, label: "AI Advisor", path: "/advisor" },
 ];
 

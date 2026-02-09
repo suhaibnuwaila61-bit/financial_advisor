@@ -179,3 +179,14 @@
 - [x] Fix dashboard content positioning (too far left)
 - [x] Change Add Entry button to directly show form (not toggle)
 - [ ] Auto-focus first input field when form opens
+
+
+## Phase 17: AI Chat for Transaction Processing
+
+- [x] Create AI chat page component with message history
+- [x] Add image upload functionality for transaction photos
+- [x] Implement LLM integration to analyze photos and descriptions
+- [x] Auto-extract transaction details from AI analysis
+- [x] Automatically create transactions from AI responses
+- [x] Display chat history with user messages and AI responses
+- [x] Add visual feedback for processing and transaction creation

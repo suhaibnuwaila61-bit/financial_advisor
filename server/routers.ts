@@ -1,10 +1,11 @@
-import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { COOKIE_NAME } from "../shared/const";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { advisorRouter } from "./advisor-router";
+import * as chat from "./chat";
 
 export const appRouter = router({
   systemCore: systemRouter,
@@ -99,19 +100,12 @@ export const appRouter = router({
         amount: z.string(),
         type: z.enum(["expense", "income"]),
         description: z.string().optional(),
-        transactionDate: z.date().optional()
+        date: z.date().optional()
       }))
       .mutation(async ({ ctx, input }) => {
-        return await db.createTransaction(
-          ctx.user.id,
-          input.categoryId,
-          input.amount,
-          input.type,
-          input.description,
-          input.transactionDate
-        );
+        return await db.createTransaction(ctx.user.id, input.categoryId, input.amount, input.type, input.description, input.date);
       }),
-    
+
     delete: protectedProcedure
       .input(z.object({
         id: z.number()
@@ -126,41 +120,28 @@ export const appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return await db.getInvestments(ctx.user.id);
     }),
-    
+
     create: protectedProcedure
       .input(z.object({
         symbol: z.string(),
-        assetType: z.enum(["stock", "crypto", "commodity", "etf", "mutual_fund", "other"]),
+        name: z.string(),
+        assetType: z.enum(["stock", "crypto", "etf", "mutual_fund", "commodity", "other"]),
         quantity: z.string(),
         purchasePrice: z.string(),
-        currentPrice: z.string(),
-        name: z.string(),
-        purchaseDate: z.date().optional(),
-        notes: z.string().optional()
+        currentPrice: z.string()
       }))
       .mutation(async ({ ctx, input }) => {
         return await db.createInvestment(
           ctx.user.id,
           input.symbol,
+          input.name,
           input.assetType,
           input.quantity,
           input.purchasePrice,
-          input.currentPrice,
-          input.name,
-          input.purchaseDate,
-          input.notes
+          input.currentPrice
         );
       }),
-    
-    updatePrice: protectedProcedure
-      .input(z.object({
-        investmentId: z.number(),
-        currentPrice: z.string()
-      }))
-      .mutation(async ({ input }) => {
-        return await db.updateInvestmentPrice(input.investmentId, input.currentPrice);
-      }),
-    
+
     delete: protectedProcedure
       .input(z.object({
         id: z.number()
@@ -175,15 +156,13 @@ export const appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return await db.getSavingsGoals(ctx.user.id);
     }),
-    
+
     create: protectedProcedure
       .input(z.object({
         name: z.string(),
         targetAmount: z.string(),
         currentAmount: z.string().optional(),
-        deadline: z.date().optional(),
-        category: z.string().optional(),
-        description: z.string().optional()
+        deadline: z.date()
       }))
       .mutation(async ({ ctx, input }) => {
         return await db.createSavingsGoal(
@@ -191,21 +170,21 @@ export const appRouter = router({
           input.name,
           input.targetAmount,
           input.deadline,
-          input.category,
-          input.description,
-          input.currentAmount
+          undefined,
+          undefined,
+          input.currentAmount || "0"
         );
       }),
-    
+
     updateAmount: protectedProcedure
       .input(z.object({
         goalId: z.number(),
         currentAmount: z.string()
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         return await db.updateSavingsGoalAmount(input.goalId, input.currentAmount);
       }),
-    
+
     delete: protectedProcedure
       .input(z.object({
         id: z.number()
@@ -220,14 +199,13 @@ export const appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return await db.getBudgets(ctx.user.id);
     }),
-    
+
     create: protectedProcedure
       .input(z.object({
         name: z.string(),
         limitAmount: z.string(),
         period: z.enum(["daily", "weekly", "monthly", "yearly"]),
         categoryId: z.number().optional(),
-        startDate: z.date().optional(),
         alertThreshold: z.number().optional()
       }))
       .mutation(async ({ ctx, input }) => {
@@ -237,20 +215,11 @@ export const appRouter = router({
           input.limitAmount,
           input.period,
           input.categoryId,
-          input.startDate,
-          input.alertThreshold
+          undefined,
+          input.alertThreshold || 80
         );
       }),
-    
-    updateSpent: protectedProcedure
-      .input(z.object({
-        budgetId: z.number(),
-        spent: z.string()
-      }))
-      .mutation(async ({ input }) => {
-        return await db.updateBudgetSpent(input.budgetId, input.spent);
-      }),
-    
+
     delete: protectedProcedure
       .input(z.object({
         id: z.number()
@@ -260,43 +229,10 @@ export const appRouter = router({
       }),
   }),
 
-  // Notifications
-  notifications: router({
-    list: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getNotifications(ctx.user.id);
-    }),
-    
-    markAsRead: protectedProcedure
-      .input(z.object({
-        notificationId: z.number()
-      }))
-      .mutation(async ({ input }) => {
-        return await db.markNotificationAsRead(input.notificationId);
-      }),
-  }),
-
-  // Market Data
-  marketData: router({
-    get: publicProcedure
-      .input(z.object({
-        symbol: z.string()
-      }))
-      .query(async ({ input }) => {
-        return await db.getMarketData(input.symbol);
-      }),
-  }),
-
-  // Financial Insights
-  insights: router({
-    list: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getFinancialInsights(ctx.user.id);
-    }),
-  }),
-
-   // Financial Advisor
+  // Advisor
   advisor: advisorRouter,
-  
-  // Lending & Borrowing
+
+  // Lendings
   lendings: router({
     create: protectedProcedure
       .input(z.object({
@@ -329,6 +265,42 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         return await db.deleteLending(ctx.user.id, input.id);
+      }),
+  }),
+
+  // AI Chat
+  chat: router({
+    processTransaction: protectedProcedure
+      .input(z.object({
+        description: z.string(),
+        imageBase64: z.string().optional()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          // Parse transaction from description and image
+          const parseResult = await chat.parseTransactionFromDescription(input.description, input.imageBase64);
+          
+          if (!parseResult.transactionData) {
+            return {
+              message: parseResult.message,
+              transactionCreated: false
+            };
+          }
+          
+          // Create the transaction
+          const createResult = await chat.createTransactionFromParsedData(ctx.user.id, parseResult.transactionData);
+          
+          return {
+            message: createResult.message,
+            transactionCreated: createResult.success
+          };
+        } catch (error) {
+          console.error("Error processing transaction:", error);
+          return {
+            message: "Sorry, I encountered an error processing your request. Please try again.",
+            transactionCreated: false
+          };
+        }
       }),
   }),
   
