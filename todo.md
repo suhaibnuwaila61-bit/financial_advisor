@@ -129,3 +129,8 @@
 - [x] Update typography and spacing for modern look
 - [ ] Update all pages with new theme (Dashboard done, others pending)
 - [x] Test smart routing on all transaction types
+
+
+## Bug Fixes - Phase 12
+
+- [x] Fix: Savings goal target not updating when "Savings" category transaction is added

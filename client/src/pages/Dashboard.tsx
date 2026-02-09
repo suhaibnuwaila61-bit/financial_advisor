@@ -76,13 +76,14 @@ export default function Dashboard() {
         });
         toast.success("Investment added!");
       } else if (unifiedForm.type === "savings") {
+        // Create a savings goal with the transaction amount
         await createSavingsGoal.mutateAsync({
-          name: unifiedForm.goalName || "Savings Goal",
-          targetAmount: unifiedForm.amount,
-          currentAmount: unifiedForm.amount,
+          name: unifiedForm.goalName || `Savings - ${new Date().toLocaleDateString()}`,
+          targetAmount: (parseFloat(unifiedForm.amount) * 2).toString(), // Target is 2x the amount
+          currentAmount: unifiedForm.amount, // Current is the amount entered
           deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
         });
-        toast.success("Savings goal created!");
+        toast.success("Savings goal created with target updated!");
       } else if (unifiedForm.type === "budget") {
         await createBudget.mutateAsync({
           name: unifiedForm.budgetName || "Budget",
@@ -105,7 +106,12 @@ export default function Dashboard() {
         period: "monthly"
       });
       setShowUnifiedForm(false);
+      // Refresh the dashboard overview
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
+      console.error("Error adding entry:", error);
       toast.error("Failed to add entry");
     }
   };
