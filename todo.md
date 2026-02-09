@@ -134,3 +134,7 @@
 ## Bug Fixes - Phase 12
 
 - [x] Fix: Savings goal target not updating when "Savings" category transaction is added
+
+- [x] Add savings goals as category options in transaction form
+- [x] Link transactions to specific savings goals for updates
+- [x] Remove auto-refresh on app load

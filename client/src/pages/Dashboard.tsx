@@ -34,6 +34,8 @@ export default function Dashboard() {
   const createSavingsGoal = trpc.savingsGoals.create.useMutation();
   const createBudget = trpc.budgets.create.useMutation();
   const { data: categories = [] } = trpc.categories.list.useQuery();
+  const { data: savingsGoals = [] } = trpc.savingsGoals.list.useQuery();
+  const updateSavingsGoal = trpc.savingsGoals.updateAmount.useMutation();
 
   useEffect(() => {
     if (overview) {
@@ -56,11 +58,29 @@ export default function Dashboard() {
 
     try {
       if (unifiedForm.type === "expense" || unifiedForm.type === "income") {
-        const categoryId = categories.find(c => c.name === unifiedForm.category)?.id;
+        // Check if category is a savings goal
+        let categoryId = 1;
+        if (unifiedForm.category.startsWith("GOAL:")) {
+          // Extract goal ID and update the savings goal
+          const goalId = parseInt(unifiedForm.category.split(":")[1]);
+          const goal = savingsGoals.find(g => g.id === goalId);
+          if (goal) {
+            // Update savings goal with new amount
+            const newAmount = (parseFloat(goal.currentAmount || "0") + parseFloat(unifiedForm.amount)).toString();
+            await updateSavingsGoal.mutateAsync({
+              goalId: goalId,
+              currentAmount: newAmount
+            });
+            toast.success(`Savings goal "${goal.name}" updated!`);
+            return; // Don't create transaction, just update goal
+          }
+        } else {
+          categoryId = categories.find(c => c.name === unifiedForm.category)?.id || 1;
+        }
         await createTransaction.mutateAsync({
           amount: unifiedForm.amount,
           description: unifiedForm.description,
-          categoryId: categoryId || 1,
+          categoryId: categoryId,
           type: unifiedForm.type === "income" ? "income" : "expense"
         });
         toast.success(`${unifiedForm.type === "income" ? "Income" : "Expense"} added!`);
@@ -106,10 +126,6 @@ export default function Dashboard() {
         period: "monthly"
       });
       setShowUnifiedForm(false);
-      // Refresh the dashboard overview
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     } catch (error) {
       console.error("Error adding entry:", error);
       toast.error("Failed to add entry");
@@ -249,10 +265,17 @@ export default function Dashboard() {
                       className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                     >
                       <option value="">Select Category</option>
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
-                      ))}
-                      <option value="General">General</option>
+                      <optgroup label="Regular Categories">
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))}
+                        <option value="General">General</option>
+                      </optgroup>
+                      <optgroup label="Savings Goals">
+                        {savingsGoals.map(goal => (
+                          <option key={goal.id} value={`GOAL:${goal.id}`}>{goal.name}</option>
+                        ))}
+                      </optgroup>
                     </select>
                   </div>
                   <div>
