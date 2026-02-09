@@ -43,18 +43,28 @@ export default function Home() {
               <div className="text-3xl">⚡</div>
               <h1 className="text-2xl font-bold neon-text-pink">FINANCIAL NEXUS</h1>
             </div>
-            {isAuthenticated && user ? (
-              <Button
-                onClick={() => navigate("/dashboard")}
-                className="btn-neon-cyan"
-              >
-                Go to Dashboard
-              </Button>
-            ) : (
-              <a href={getLoginUrl()} className="btn-neon-cyan">
-                Sign In
-              </a>
-            )}
+            <div className="flex gap-3">
+              {isAuthenticated && user ? (
+                <Button
+                  onClick={() => navigate("/dashboard")}
+                  className="btn-neon-cyan"
+                >
+                  Go to Dashboard
+                </Button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate("/demo")}
+                    className="btn-neon-cyan"
+                  >
+                    View Demo
+                  </button>
+                  <a href={getLoginUrl()} className="btn-neon">
+                    Sign In
+                  </a>
+                </>
+              )}
+            </div>
           </div>
         </nav>
 
@@ -82,8 +92,11 @@ export default function Home() {
                 Start Now
                 <ArrowRight className="w-5 h-5" />
               </a>
-              <button className="btn-neon-cyan flex items-center justify-center gap-2 text-lg px-8 py-4">
-                Learn More
+              <button
+                onClick={() => navigate("/demo")}
+                className="btn-neon-cyan flex items-center justify-center gap-2 text-lg px-8 py-4"
+              >
+                View Demo
               </button>
             </div>
 

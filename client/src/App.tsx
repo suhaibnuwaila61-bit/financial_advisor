@@ -9,6 +9,7 @@ import Budgets from "@/pages/Budgets";
 import Advisor from "@/pages/Advisor";
 import Lendings from "@/pages/Lendings";
 import AIChat from "@/pages/AIChat";
+import Demo from "@/pages/Demo";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -18,6 +19,7 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/demo"} component={Demo} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/transactions"} component={Transactions} />
       <Route path={"/investments"} component={Investments} />
