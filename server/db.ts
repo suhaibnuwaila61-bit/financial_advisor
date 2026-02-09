@@ -10,7 +10,8 @@ import {
   budgets,
   notifications,
   marketData,
-  financialInsights
+  financialInsights,
+  lendings
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -497,4 +498,58 @@ export async function createFinancialInsight(userId: number, insightType: "spend
     content,
     metadata
   });
+}
+
+
+// Lending/Borrowing helpers
+export async function createLending(userId: number, type: "lent" | "borrowed", personName: string, amount: string, description?: string, dueDate?: Date) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.insert(lendings).values({
+    userId,
+    type,
+    personName,
+    amount,
+    description,
+    dueDate,
+    status: "pending",
+    amountRepaid: "0"
+  });
+}
+
+export async function getLendings(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(lendings)
+    .where(eq(lendings.userId, userId))
+    .orderBy(desc(lendings.createdAt));
+}
+
+export async function updateLendingRepayment(userId: number, lendingId: number, amountRepaid: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const lending = await db.select().from(lendings)
+    .where(and(eq(lendings.id, lendingId), eq(lendings.userId, userId)))
+    .limit(1);
+  
+  if (!lending.length) return null;
+  
+  const totalRepaid = (parseFloat(lending[0].amountRepaid) + parseFloat(amountRepaid)).toString();
+  const originalAmount = parseFloat(lending[0].amount);
+  const newStatus = parseFloat(totalRepaid) >= originalAmount ? "repaid" : "partial";
+  
+  return await db.update(lendings)
+    .set({ amountRepaid: totalRepaid, status: newStatus })
+    .where(eq(lendings.id, lendingId));
+}
+
+export async function deleteLending(userId: number, lendingId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.delete(lendings)
+    .where(and(eq(lendings.id, lendingId), eq(lendings.userId, userId)));
 }

@@ -177,3 +177,20 @@ export const financialInsights = mysqlTable("financialInsights", {
 
 export type FinancialInsight = typeof financialInsights.$inferSelect;
 export type InsertFinancialInsight = typeof financialInsights.$inferInsert;
+
+export const lendings = mysqlTable("lendings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["lent", "borrowed"]).notNull(),
+  personName: varchar("personName", { length: 100 }).notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  description: text("description"),
+  status: mysqlEnum("status", ["pending", "partial", "repaid"]).default("pending").notNull(),
+  amountRepaid: decimal("amountRepaid", { precision: 12, scale: 2 }).default("0").notNull(),
+  dueDate: datetime("dueDate"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Lending = typeof lendings.$inferSelect;
+export type InsertLending = typeof lendings.$inferInsert;

@@ -147,3 +147,14 @@
 - [x] Second confirmation dialog with FINAL WARNING
 - [x] Delete all transactions, investments, goals, budgets on confirm
 - [x] Show success message after reset
+
+
+## Phase 14: Net Worth & Lending/Borrowing
+
+- [ ] Add net worth calculation (total assets - liabilities) to dashboard
+- [ ] Add detailed dashboard breakdown (income sources, expense categories)
+- [x] Create lending/borrowing table schema
+- [x] Add "Lend Money" and "Borrow Money" transaction types
+- [x] Track repayment status for loans
+- [ ] Display lending/borrowing summary on dashboard
+- [x] Add lending/borrowing management page

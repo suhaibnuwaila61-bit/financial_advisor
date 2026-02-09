@@ -7,6 +7,7 @@ import Investments from "@/pages/Investments";
 import SavingsGoals from "@/pages/SavingsGoals";
 import Budgets from "@/pages/Budgets";
 import Advisor from "@/pages/Advisor";
+import Lendings from "@/pages/Lendings";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -22,6 +23,7 @@ function Router() {
       <Route path={"/savings-goals"} component={SavingsGoals} />
       <Route path={"/budgets"} component={Budgets} />
       <Route path={"/advisor"} component={Advisor} />
+      <Route path={"/lendings"} component={Lendings} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

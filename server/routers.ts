@@ -296,6 +296,42 @@ export const appRouter = router({
    // Financial Advisor
   advisor: advisorRouter,
   
+  // Lending & Borrowing
+  lendings: router({
+    create: protectedProcedure
+      .input(z.object({
+        type: z.enum(["lent", "borrowed"]),
+        personName: z.string(),
+        amount: z.string(),
+        description: z.string().optional(),
+        dueDate: z.date().optional()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.createLending(ctx.user.id, input.type, input.personName, input.amount, input.description, input.dueDate);
+      }),
+    
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getLendings(ctx.user.id);
+    }),
+    
+    updateRepayment: protectedProcedure
+      .input(z.object({
+        lendingId: z.number(),
+        amountRepaid: z.string()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.updateLendingRepayment(ctx.user.id, input.lendingId, input.amountRepaid);
+      }),
+    
+    delete: protectedProcedure
+      .input(z.object({
+        id: z.number()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.deleteLending(ctx.user.id, input.id);
+      }),
+  }),
+  
   // System & Reset
   system: router({
     resetAllData: protectedProcedure
