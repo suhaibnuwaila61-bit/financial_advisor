@@ -267,12 +267,17 @@ export async function createInvestment(userId: number, symbol: string, assetType
   });
 }
 
-export async function updateInvestmentPrice(investmentId: number, currentPrice: string) {
+export async function updateInvestmentPrice(investmentId: number, currentPrice: string, lastUpdated?: Date) {
   const db = await getDb();
   if (!db) return null;
   
+  const updateData: any = { currentPrice };
+  if (lastUpdated) {
+    updateData.lastUpdated = lastUpdated;
+  }
+  
   return await db.update(investments)
-    .set({ currentPrice })
+    .set(updateData)
     .where(eq(investments.id, investmentId));
 }
 

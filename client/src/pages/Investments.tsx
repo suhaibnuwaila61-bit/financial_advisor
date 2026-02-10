@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Plus, X, TrendingUp, TrendingDown, Trash2 } from "lucide-react";
+import { Plus, X, TrendingUp, TrendingDown, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 type AssetType = "stock" | "crypto" | "etf" | "mutual_fund" | "commodity" | "other";
@@ -22,6 +22,25 @@ export default function Investments() {
   const { data: investments = [], isLoading, refetch } = trpc.investments.list.useQuery();
   const createInvestment = trpc.investments.create.useMutation();
   const deleteInvestment = trpc.investments.delete.useMutation();
+  const refreshPrices = trpc.investments.refreshPrices.useMutation();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshPrices = async () => {
+    setIsRefreshing(true);
+    try {
+      const result = await refreshPrices.mutateAsync();
+      if (result.success) {
+        toast.success(result.message);
+        refetch();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error("Failed to refresh prices");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleDeleteInvestment = async (investmentId: number) => {
     if (!confirm("Are you sure you want to delete this investment?")) {
@@ -124,13 +143,23 @@ export default function Investments() {
               Manage your stocks, crypto, and other assets
             </p>
           </div>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
-          >
-            <Plus className="w-5 h-5" />
-            Add Investment
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleRefreshPrices}
+              disabled={investments.length === 0 || isRefreshing}
+              className="px-4 py-2 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Updating...' : 'Refresh Prices'}
+            </button>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
+            >
+              <Plus className="w-5 h-5" />
+              Add Investment
+            </button>
+          </div>
         </div>
 
         {/* Portfolio Summary */}
@@ -276,83 +305,77 @@ export default function Investments() {
         )}
 
         {/* Investments List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {isLoading ? (
-            <div className="col-span-2 text-center text-neon-cyan py-8">Loading investments...</div>
-          ) : investments.length === 0 ? (
-            <div className="col-span-2 card-neon p-8 text-center">
-              <TrendingUp className="w-12 h-12 text-neon-cyan mx-auto mb-4 opacity-50" />
-              <p className="text-neon-cyan">No investments yet. Add your first investment to get started!</p>
-            </div>
-          ) : (
-            investments.map((investment) => {
-              const currentValue = calculateTotalValue(investment.quantity, investment.currentPrice);
-              const costBasis = calculateTotalCost(investment.quantity, investment.purchasePrice);
+        {isLoading ? (
+          <div className="text-center text-neon-cyan">Loading investments...</div>
+        ) : investments.length === 0 ? (
+          <div className="text-center text-neon-cyan/50 py-8">
+            No investments yet. Add one to get started!
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {investments.map((investment) => {
               const gainLoss = calculateGainLoss(investment.quantity, investment.purchasePrice, investment.currentPrice);
               const gainLossPercent = calculateGainLossPercent(investment.purchasePrice, investment.currentPrice);
+              const totalValue = calculateTotalValue(investment.quantity, investment.currentPrice);
+              const isProfit = gainLoss >= 0;
 
               return (
                 <div
                   key={investment.id}
-                  className={`card-neon p-6 ${gainLoss >= 0 ? 'border-neon-green' : 'border-neon-pink'}`}
+                  className={`card-neon p-6 border-2 ${isProfit ? 'border-neon-green' : 'border-neon-pink'}`}
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-neon-pink font-bold text-lg">{investment.symbol}</h3>
-                      <p className="text-neon-cyan/70 text-sm">{investment.name || investment.assetType}</p>
+                      <h3 className="text-xl font-bold neon-text-cyan">{investment.symbol}</h3>
+                      <p className="text-neon-cyan/70 text-sm">{investment.name}</p>
+                      {investment.lastUpdated && (
+                        <p className="text-neon-cyan/50 text-xs mt-1">
+                          Updated: {new Date(investment.lastUpdated).toLocaleString()}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-neon-cyan/70 text-xs uppercase px-2 py-1 border border-neon-cyan/30 rounded">
-                        {investment.assetType}
-                      </span>
-                      <button
-                        onClick={() => handleDeleteInvestment(investment.id)}
-                        disabled={deleteInvestment.isPending}
-                        className="text-neon-pink hover:text-neon-cyan transition-colors p-2"
-                        title="Delete investment"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleDeleteInvestment(investment.id)}
+                      className="text-neon-pink hover:text-neon-cyan transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
 
-                  <div className="space-y-2 mb-4 pb-4 border-b border-neon-cyan/20">
-                    <div className="flex justify-between text-sm">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
                       <span className="text-neon-cyan/70">Quantity:</span>
-                      <span className="text-neon-cyan font-bold">{parseFloat(investment.quantity).toFixed(8)}</span>
+                      <span className="text-neon-cyan font-mono">{parseFloat(investment.quantity).toFixed(8)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between">
                       <span className="text-neon-cyan/70">Purchase Price:</span>
-                      <span className="text-neon-cyan">{formatCurrency(investment.purchasePrice)}</span>
+                      <span className="text-neon-cyan font-mono">{formatCurrency(investment.purchasePrice)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between">
                       <span className="text-neon-cyan/70">Current Price:</span>
-                      <span className="text-neon-cyan font-bold">{formatCurrency(investment.currentPrice)}</span>
+                      <span className="text-neon-cyan font-mono">{formatCurrency(investment.currentPrice)}</span>
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-neon-cyan/70">Current Value:</span>
-                      <span className="text-neon-cyan font-bold">{formatCurrency(currentValue.toString())}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neon-cyan/70">Cost Basis:</span>
-                      <span className="text-neon-cyan/70">{formatCurrency(costBasis.toString())}</span>
-                    </div>
-                    <div className={`flex justify-between font-bold ${gainLoss >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
-                      <span>Gain/Loss:</span>
-                      <span className="flex items-center gap-1">
-                        {gainLoss >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                        {gainLoss >= 0 ? '+' : ''}{formatCurrency(gainLoss.toString())} ({gainLossPercent.toFixed(2)}%)
-                      </span>
+                    <div className="border-t border-neon-cyan/20 pt-3 mt-3">
+                      <div className="flex justify-between mb-2">
+                        <span className="text-neon-cyan/70">Current Value:</span>
+                        <span className="text-neon-cyan font-bold">{formatCurrency(totalValue.toString())}</span>
+                      </div>
+                      <div className={`flex justify-between items-center ${isProfit ? 'text-neon-green' : 'text-neon-pink'}`}>
+                        <span className="flex items-center gap-2">
+                          {isProfit ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                          Gain/Loss
+                        </span>
+                        <span className="font-bold">
+                          {formatCurrency(gainLoss.toString())} ({gainLossPercent.toFixed(2)}%)
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

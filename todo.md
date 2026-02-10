@@ -17,7 +17,7 @@
 - [x] Investment portfolio manager
 - [x] Support for stocks, crypto, and other asset types
 - [x] Current value tracking for each asset
-- [ ] Real-time market data integration for stocks and crypto
+- [x] Real-time market data integration for stocks and crypto
 - [x] Automatic portfolio value updates with gains/losses calculation
 
 ### Savings & Budget Management
@@ -213,3 +213,13 @@
 - [x] Add call-to-action buttons to try the app
 - [x] Add "View Demo" button to home page navigation
 - [x] Test demo page accessibility and responsiveness
+
+## Phase 20: Real-Time Market Data Integration
+
+- [x] Create market data service for fetching prices (CoinGecko & Yahoo Finance)
+- [x] Add refreshPrices API endpoint to investments router
+- [x] Update Investments page with Refresh Prices button
+- [x] Add loading states and success/error notifications
+- [x] Display last updated timestamps on investment cards
+- [x] Support stocks and cryptocurrencies
+- [x] Test all features and verify no breakage

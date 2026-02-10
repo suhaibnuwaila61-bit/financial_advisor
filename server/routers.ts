@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { advisorRouter } from "./advisor-router";
 import * as chat from "./chat";
+import * as marketData from "./market-data";
 
 export const appRouter = router({
   systemCore: systemRouter,
@@ -146,6 +147,53 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         return await db.deleteInvestment(ctx.user.id, input.id);
       }),
+
+    refreshPrices: protectedProcedure.mutation(async ({ ctx }) => {
+      try {
+        const investments = await db.getInvestments(ctx.user.id);
+        
+        if (investments.length === 0) {
+          return {
+            success: true,
+            message: "No investments to refresh",
+            updated: 0,
+          };
+        }
+
+        const assets = investments.map(inv => ({
+          symbol: inv.symbol,
+          type: (inv.assetType === "crypto" ? "crypto" : "stock") as "crypto" | "stock",
+        }));
+
+        const priceMap = await marketData.batchGetPrices(assets as Array<{ symbol: string; type?: "crypto" | "stock" }>);
+        let updated = 0;
+
+        for (const investment of investments) {
+          const priceData = priceMap.get(investment.symbol.toUpperCase());
+          if (priceData) {
+            await db.updateInvestmentPrice(
+              investment.id,
+              priceData.price.toString(),
+              new Date()
+            );
+            updated++;
+          }
+        }
+
+        return {
+          success: true,
+          message: `Updated ${updated} of ${investments.length} investments`,
+          updated,
+        };
+      } catch (error) {
+        console.error("Error refreshing prices:", error);
+        return {
+          success: false,
+          message: error instanceof Error ? error.message : "Failed to refresh prices",
+          updated: 0,
+        };
+      }
+    }),
   }),
 
   // Savings Goals
