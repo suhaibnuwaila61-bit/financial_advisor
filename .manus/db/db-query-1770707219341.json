@@ -1,0 +1,15 @@
+{
+  "query": "SELECT id, openId, name FROM users ORDER BY lastSignedIn DESC LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2Aq7fuRAAT7oF4P.root --database GhERUjFNHAWX9pobhR6F3B --execute SELECT id, openId, name FROM users ORDER BY lastSignedIn DESC LIMIT 1;",
+  "rows": [
+    {
+      "id": "1",
+      "openId": "5y3hDB4V7BsH8fKoirwLGh",
+      "name": "suhaib nuwaila"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\n1\t5y3hDB4V7BsH8fKoirwLGh\tsuhaib nuwaila\n",
+  "stderr": "",
+  "execution_time_ms": 1588
+}

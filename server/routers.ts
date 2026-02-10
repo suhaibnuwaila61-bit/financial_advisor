@@ -132,11 +132,11 @@ export const appRouter = router({
         return await db.createInvestment(
           ctx.user.id,
           input.symbol,
-          input.name,
           input.assetType,
           input.quantity,
           input.purchasePrice,
-          input.currentPrice
+          input.currentPrice,
+          input.name
         );
       }),
 

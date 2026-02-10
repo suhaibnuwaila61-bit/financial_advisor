@@ -1,0 +1,20 @@
+{
+  "query": "SELECT users.id, users.openId, COUNT(investments.id) as investment_count FROM users LEFT JOIN investments ON users.id = investments.userId GROUP BY users.id, users.openId ORDER BY users.id DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2Aq7fuRAAT7oF4P.root --database GhERUjFNHAWX9pobhR6F3B --execute SELECT users.id, users.openId, COUNT(investments.id) as investment_count FROM users LEFT JOIN investments ON users.id = investments.userId GROUP BY users.id, users.openId ORDER BY users.id DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "30017",
+      "openId": "NkypNEUQe77AtvpCpb9x4T",
+      "investment_count": "0"
+    },
+    {
+      "id": "1",
+      "openId": "5y3hDB4V7BsH8fKoirwLGh",
+      "investment_count": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tinvestment_count\n30017\tNkypNEUQe77AtvpCpb9x4T\t0\n1\t5y3hDB4V7BsH8fKoirwLGh\t0\n",
+  "stderr": "",
+  "execution_time_ms": 1564
+}
