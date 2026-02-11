@@ -194,6 +194,71 @@ export const appRouter = router({
         };
       }
     }),
+
+    // Transaction History
+    transactions: router({
+      list: protectedProcedure
+        .input(z.object({
+          symbol: z.string().optional()
+        }))
+        .query(async ({ ctx, input }) => {
+          return await db.getInvestmentTransactions(ctx.user.id, input.symbol);
+        }),
+
+      create: protectedProcedure
+        .input(z.object({
+          investmentId: z.number().nullable().optional(),
+          symbol: z.string(),
+          assetType: z.enum(["stock", "crypto", "commodity", "etf", "mutual_fund", "other"]),
+          transactionType: z.enum(["buy", "sell"]),
+          quantity: z.string(),
+          pricePerUnit: z.string(),
+          fees: z.string().optional(),
+          notes: z.string().optional(),
+          transactionDate: z.date()
+        }))
+        .mutation(async ({ ctx, input }) => {
+          return await db.createInvestmentTransaction(
+            ctx.user.id,
+            input.investmentId || null,
+            input.symbol,
+            input.assetType,
+            input.transactionType,
+            input.quantity,
+            input.pricePerUnit,
+            input.fees || "0",
+            input.notes || null,
+            input.transactionDate
+          );
+        }),
+
+      delete: protectedProcedure
+        .input(z.object({
+          id: z.number()
+        }))
+        .mutation(async ({ ctx, input }) => {
+          return await db.deleteInvestmentTransaction(ctx.user.id, input.id);
+        })
+    }),
+
+    // Price History
+    priceHistory: protectedProcedure
+      .input(z.object({
+        symbol: z.string(),
+        days: z.number().optional()
+      }))
+      .query(async ({ ctx, input }) => {
+        return await db.getPriceHistory(input.symbol, input.days || 30);
+      }),
+
+    // Investment Statistics
+    stats: protectedProcedure
+      .input(z.object({
+        symbol: z.string()
+      }))
+      .query(async ({ ctx, input }) => {
+        return await db.getInvestmentStats(ctx.user.id, input.symbol);
+      }),
   }),
 
   // Savings Goals

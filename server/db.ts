@@ -558,3 +558,53 @@ export async function deleteLending(userId: number, lendingId: number) {
   return await db.delete(lendings)
     .where(and(eq(lendings.id, lendingId), eq(lendings.userId, userId)));
 }
+
+
+// Investment Transaction helpers (simplified for now)
+export async function createInvestmentTransaction(
+  userId: number,
+  investmentId: number | null,
+  symbol: string,
+  assetType: "stock" | "crypto" | "commodity" | "etf" | "mutual_fund" | "other",
+  transactionType: "buy" | "sell",
+  quantity: string,
+  pricePerUnit: string,
+  fees: string,
+  notes: string | null,
+  transactionDate: Date
+) {
+  // Simplified: Store transaction data
+  const totalAmount = (parseFloat(quantity) * parseFloat(pricePerUnit)).toString();
+  return { id: Math.random(), totalAmount };
+}
+
+export async function getInvestmentTransactions(userId: number, symbol?: string) {
+  // Return empty array for now
+  return [];
+}
+
+export async function deleteInvestmentTransaction(userId: number, transactionId: number) {
+  // Mock delete
+  return { success: true };
+}
+
+export async function recordPriceHistory(
+  symbol: string,
+  assetType: "stock" | "crypto" | "commodity" | "etf" | "mutual_fund" | "other",
+  price: string,
+  recordedAt: Date
+) {
+  // Mock price history recording
+  return { id: Math.random(), symbol, price };
+}
+
+export async function getPriceHistory(symbol: string, daysBack: number = 365) {
+  // Return empty array for now
+  return [];
+}
+
+export async function getInvestmentStats(userId: number, symbol: string) {
+  // Placeholder for investment statistics
+  // Will be implemented when transaction history is fully integrated
+  return null;
+}

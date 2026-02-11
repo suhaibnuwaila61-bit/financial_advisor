@@ -238,3 +238,54 @@
 - [x] Add Analytics route to App.tsx
 - [x] Add Analytics to sidebar navigation
 - [x] Test all charts and verify no breakage
+
+
+## Phase 22: Advanced Investment Tracking
+
+- [ ] Create investmentTransactions table
+- [ ] Create investmentPriceHistory table
+- [ ] Add database functions for transaction management
+- [ ] Add API endpoints for transactions and price history
+- [ ] Build enhanced Investments page with detail modal
+- [ ] Add price history charts with time range filters
+- [ ] Add transaction recording form
+- [ ] Add investment statistics display
+- [ ] Add best/worst performer cards
+- [ ] Add asset allocation pie chart
+- [ ] Test all features
+
+
+## Phase 22 COMPLETED: Advanced Investment Tracking Integration
+
+✅ **Backend Implementation:**
+- [x] Created investmentTransactions table
+- [x] Created investmentPriceHistory table
+- [x] Added 5+ database helper functions
+- [x] Implemented tRPC endpoints for transaction management
+- [x] Implemented tRPC endpoints for price history and statistics
+
+✅ **Frontend Implementation:**
+- [x] Enhanced Investments page with portfolio summary
+- [x] Added portfolio metrics (total value, cost, gain/loss, transaction count)
+- [x] Implemented best/worst performer cards
+- [x] Added asset allocation pie chart
+- [x] Created investment detail modal with price history charts
+- [x] Added 7/30/90/365 day price chart filters
+- [x] Implemented transaction history table with delete functionality
+- [x] Created Record Trade button with buy/sell form
+- [x] Added investment statistics display (cost basis, holding period, realized gains)
+
+✅ **Testing:**
+- [x] Created comprehensive test suite (26 investment tests)
+- [x] All 56 tests passing (26 investment + 29 finance + 1 auth)
+- [x] Tests cover transactions, price history, statistics, and integration scenarios
+
+✅ **Features Delivered:**
+1. Portfolio Summary - Total value, cost, gain/loss metrics
+2. Performance Tracking - Best/worst performers with percentage returns
+3. Asset Allocation - Visual pie chart breakdown by asset type
+4. Transaction Recording - Buy/sell form with automatic calculations
+5. Price History Charts - LineChart with multiple time range options
+6. Transaction History - Table view with delete capability
+7. Investment Statistics - Average cost basis, holding period, realized gains
+8. Detail Modal - Comprehensive investment details in expandable modal
