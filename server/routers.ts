@@ -238,6 +238,40 @@ export const appRouter = router({
         }))
         .mutation(async ({ ctx, input }) => {
           return await db.deleteInvestmentTransaction(ctx.user.id, input.id);
+        }),
+
+      update: protectedProcedure
+        .input(z.object({
+          id: z.number(),
+          quantity: z.string(),
+          pricePerUnit: z.string(),
+          fees: z.string().optional(),
+          notes: z.string().optional(),
+          transactionDate: z.date(),
+          transactionType: z.enum(["buy", "sell"])
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const transactions = await db.getInvestmentTransactions(ctx.user.id);
+          const transaction = transactions.find((t: any) => t.id === input.id) as any;
+          
+          if (!transaction) {
+            throw new Error("Transaction not found");
+          }
+          
+          await db.deleteInvestmentTransaction(ctx.user.id, input.id);
+          
+          return await db.createInvestmentTransaction(
+            ctx.user.id,
+            transaction.investmentId || null,
+            transaction.symbol,
+            transaction.assetType,
+            input.transactionType,
+            input.quantity,
+            input.pricePerUnit,
+            input.fees || "0",
+            input.notes || null,
+            input.transactionDate
+          );
         })
     }),
 

@@ -15,6 +15,8 @@ export default function Investments() {
   const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [priceChartDays, setPriceChartDays] = useState(30);
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   const [formData, setFormData] = useState({
     symbol: "",
@@ -55,6 +57,7 @@ export default function Investments() {
   const refreshPrices = trpc.investments.refreshPrices.useMutation();
   const createTransaction = trpc.investments.transactions.create.useMutation();
   const deleteTransaction = trpc.investments.transactions.delete.useMutation();
+  const updateTransaction = trpc.investments.transactions.update?.useMutation?.();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefreshPrices = async () => {
@@ -173,6 +176,39 @@ export default function Investments() {
       toast.success("Transaction deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete transaction");
+    }
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTransaction) return;
+    try {
+      await deleteTransaction.mutateAsync({ id: editingTransaction.id });
+      await createTransaction.mutateAsync({
+        symbol: transactionData.symbol.toUpperCase(),
+        assetType: transactionData.assetType,
+        transactionType: transactionData.transactionType,
+        quantity: transactionData.quantity,
+        pricePerUnit: transactionData.pricePerUnit,
+        fees: transactionData.fees || "0",
+        notes: transactionData.notes || undefined,
+        transactionDate: new Date(transactionData.transactionDate)
+      });
+      toast.success("Transaction updated successfully!");
+      setEditingTransaction(null);
+      setShowEditForm(false);
+      setTransactionData({
+        symbol: "",
+        assetType: "stock",
+        transactionType: "buy",
+        quantity: "",
+        pricePerUnit: "",
+        fees: "0",
+        notes: "",
+        transactionDate: new Date().toISOString().split('T')[0]
+      });
+    } catch (error) {
+      toast.error("Failed to update transaction");
     }
   };
 
@@ -772,7 +808,26 @@ export default function Investments() {
                             <td className="py-2 text-right text-neon-cyan">{parseFloat(tx.quantity).toFixed(2)}</td>
                             <td className="py-2 text-right text-neon-cyan">{formatCurrency(tx.pricePerUnit)}</td>
                             <td className="py-2 text-right text-neon-cyan font-bold">{formatCurrency(tx.totalAmount)}</td>
-                            <td className="py-2 text-center">
+                            <td className="py-2 text-center flex gap-2 justify-center">
+                              <button
+                                onClick={() => {
+                                  setEditingTransaction(tx);
+                                  setTransactionData({
+                                    symbol: tx.symbol || "",
+                                    assetType: (tx.assetType || "stock") as AssetType,
+                                    transactionType: tx.transactionType as "buy" | "sell",
+                                    quantity: tx.quantity || "",
+                                    pricePerUnit: tx.pricePerUnit || "",
+                                    fees: tx.fees || "0",
+                                    notes: tx.notes || "",
+                                    transactionDate: new Date(tx.transactionDate).toISOString().split('T')[0]
+                                  });
+                                  setShowEditForm(true);
+                                }}
+                                className="text-neon-cyan hover:text-neon-cyan/70 transition text-xs px-2 py-1 border border-neon-cyan/30 hover:border-neon-cyan"
+                              >
+                                Edit
+                              </button>
                               <button
                                 onClick={() => handleDeleteTransaction(tx.id)}
                                 className="text-neon-pink hover:text-neon-pink/70 transition"
@@ -788,6 +843,97 @@ export default function Investments() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Transaction Modal */}
+      {showEditForm && editingTransaction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background border-2 border-neon-cyan max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-neon-cyan/20">
+              <h2 className="text-xl font-bold text-neon-cyan">Edit Transaction</h2>
+              <button
+                onClick={() => {
+                  setShowEditForm(false);
+                  setEditingTransaction(null);
+                }}
+                className="text-neon-cyan hover:text-neon-pink transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Transaction Type</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 text-neon-cyan cursor-pointer">
+                    <input
+                      type="radio"
+                      value="buy"
+                      checked={transactionData.transactionType === "buy"}
+                      onChange={() => setTransactionData({ ...transactionData, transactionType: "buy" })}
+                    />
+                    Buy
+                  </label>
+                  <label className="flex items-center gap-2 text-neon-cyan cursor-pointer">
+                    <input
+                      type="radio"
+                      value="sell"
+                      checked={transactionData.transactionType === "sell"}
+                      onChange={() => setTransactionData({ ...transactionData, transactionType: "sell" })}
+                    />
+                    Sell
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Quantity</label>
+                <input
+                  type="number"
+                  step="0.00000001"
+                  value={transactionData.quantity}
+                  onChange={(e) => setTransactionData({ ...transactionData, quantity: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Price Per Unit</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={transactionData.pricePerUnit}
+                  onChange={(e) => setTransactionData({ ...transactionData, pricePerUnit: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Fees</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={transactionData.fees}
+                  onChange={(e) => setTransactionData({ ...transactionData, fees: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+              <div>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Date</label>
+                <input
+                  type="date"
+                  value={transactionData.transactionDate}
+                  onChange={(e) => setTransactionData({ ...transactionData, transactionDate: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-cyan text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-neon-cyan text-background font-bold py-2 hover:bg-neon-pink transition mt-6"
+              >
+                Save Changes
+              </button>
+            </form>
           </div>
         </div>
       )}

@@ -289,3 +289,14 @@
 6. Transaction History - Table view with delete capability
 7. Investment Statistics - Average cost basis, holding period, realized gains
 8. Detail Modal - Comprehensive investment details in expandable modal
+
+
+## Phase 23: Investment Management & Editing
+
+- [x] Add "Add Investment" button to Investments page
+- [x] Create investment form modal for adding new investments
+- [x] Implement transaction editing functionality
+- [x] Add ability to record additional buy/sell transactions
+- [x] Allow users to hold investments without selling immediately
+- [x] Display transaction history with edit/delete options
+- [x] Write tests for investment editing features
