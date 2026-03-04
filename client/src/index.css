@@ -77,6 +77,10 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: #3B82F6;
+  /* Neon Colors */
+  --neon-cyan: #00D9FF;
+  --neon-pink: #FF006E;
+  --neon-green: #00FF88;
 }
 
 .dark {
@@ -107,6 +111,10 @@
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: #334155;
   --sidebar-ring: #60A5FA;
+  /* Neon Colors */
+  --neon-cyan: #00D9FF;
+  --neon-pink: #FF006E;
+  --neon-green: #00FF88;
 }
 
 * {
@@ -167,5 +175,116 @@ html {
 @media (max-width: 640px) {
   body {
     @apply text-sm;
+  }
+}
+
+
+/* Neon Color Utilities */
+@layer utilities {
+  .text-neon-cyan {
+    @apply text-[#00D9FF];
+  }
+  
+  .text-neon-pink {
+    @apply text-[#FF006E];
+  }
+  
+  .text-neon-green {
+    @apply text-[#00FF88];
+  }
+  
+  .bg-neon-cyan {
+    @apply bg-[#00D9FF];
+  }
+  
+  .bg-neon-pink {
+    @apply bg-[#FF006E];
+  }
+  
+  .bg-neon-green {
+    @apply bg-[#00FF88];
+  }
+  
+  .border-neon-cyan {
+    @apply border-[#00D9FF];
+  }
+  
+  .border-neon-pink {
+    @apply border-[#FF006E];
+  }
+  
+  .border-neon-green {
+    @apply border-[#00FF88];
+  }
+  
+  /* Opacity variants */
+  .text-neon-cyan\/50 {
+    @apply text-[#00D9FF]/50;
+  }
+  
+  .text-neon-cyan\/70 {
+    @apply text-[#00D9FF]/70;
+  }
+  
+  .text-neon-green\/70 {
+    @apply text-[#00FF88]/70;
+  }
+  
+  .bg-neon-cyan\/10 {
+    @apply bg-[#00D9FF]/10;
+  }
+  
+  .bg-neon-cyan\/20 {
+    @apply bg-[#00D9FF]/20;
+  }
+  
+  .bg-neon-cyan\/30 {
+    @apply bg-[#00D9FF]/30;
+  }
+  
+  .bg-neon-cyan\/5 {
+    @apply bg-[#00D9FF]/5;
+  }
+  
+  .bg-neon-green\/20 {
+    @apply bg-[#00FF88]/20;
+  }
+  
+  .bg-neon-green\/30 {
+    @apply bg-[#00FF88]/30;
+  }
+  
+  .border-neon-cyan\/20 {
+    @apply border-[#00D9FF]/20;
+  }
+  
+  .border-neon-cyan\/30 {
+    @apply border-[#00D9FF]/30;
+  }
+  
+  .border-neon-cyan\/50 {
+    @apply border-[#00D9FF]/50;
+  }
+  
+  .border-neon-green {
+    @apply border-[#00FF88];
+  }
+  
+  .border-neon-pink {
+    @apply border-[#FF006E];
+  }
+  
+  /* Glow animation */
+  .glow-animate {
+    animation: glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes glow {
+    0%, 100% {
+      text-shadow: 0 0 10px #00D9FF, 0 0 20px #00D9FF;
+    }
+    50% {
+      text-shadow: 0 0 20px #00D9FF, 0 0 30px #00D9FF, 0 0 40px #00D9FF;
+    }
   }
 }

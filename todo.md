@@ -349,3 +349,34 @@
 - [x] Test statistics calculations
 - [x] Test dividend tracking
 - [ ] Test export functionality
+
+
+## Phase 25: AI Investing Analyst Framework Integration
+
+### AI Chat Enhancement
+- [x] Update AI Chat system prompt with investing analyst framework
+- [x] Add analytical framework for stock analysis
+- [x] Implement risk assessment methodology
+- [x] Add behavioral finance principles
+- [x] Create structured response templates
+
+### AI Advisor Enhancement
+- [x] Update AI Advisor system prompt with investing methodology
+- [x] Implement fundamental analysis approach
+- [x] Add technical analysis guidance
+- [x] Integrate macro-economic context analysis
+- [x] Add portfolio management principles
+
+### Framework Components
+- [x] Clarify Goal section (long-term vs short-term, risk tolerance)
+- [x] Analysis Method Selection (Fundamental, Technical, Macro, Comparative)
+- [x] Insight Delivery structure (Bull case vs Bear case)
+- [x] Risk & Uncertainty Disclosure
+- [x] Behavioral & Risk Principles
+- [x] Response Style guidelines
+
+### Testing & Validation
+- [x] Test AI Chat with stock analysis queries
+- [x] Test AI Advisor with investment recommendations
+- [x] Verify framework compliance in responses
+- [x] Validate risk disclaimers appear in responses

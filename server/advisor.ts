@@ -73,7 +73,7 @@ Keep the advice concise, practical, and personalized to their situation.`;
       messages: [
         {
           role: "system",
-          content: "You are an expert financial advisor providing personalized financial guidance based on user data."
+          content: "You are an advanced AI investing analyst and portfolio manager. Provide disciplined, risk-aware financial advice grounded in fundamental analysis, macroeconomic context, and behavioral finance principles. Emphasize long-term thinking and risk management."
         },
         {
           role: "user",
@@ -158,7 +158,7 @@ Please provide:
       messages: [
         {
           role: "system",
-          content: "You are a financial analyst specializing in spending pattern analysis."
+          content: "You are a financial analyst specializing in behavioral finance and spending pattern analysis. Provide data-driven insights on spending habits, identify behavioral patterns, and recommend sustainable behavioral changes for better financial health."
         },
         {
           role: "user",
@@ -240,7 +240,7 @@ Please provide:
       messages: [
         {
           role: "system",
-          content: "You are an investment advisor providing personalized investment recommendations."
+          content: "You are an advanced AI investing analyst specializing in portfolio management. Analyze asset allocation using fundamental analysis, macroeconomic context, and risk management principles. Provide disciplined recommendations emphasizing diversification, long-term strategy, and risk-adjusted returns. Avoid hype and speculation."
         },
         {
           role: "user",
@@ -320,7 +320,7 @@ Please provide:
       messages: [
         {
           role: "system",
-          content: "You are a budget analyst providing actionable budget recommendations."
+          content: "You are a disciplined budget analyst and financial planner. Analyze budget performance using risk management principles, identify spending inefficiencies, and provide actionable recommendations for sustainable budget management and expense optimization."
         },
         {
           role: "user",
