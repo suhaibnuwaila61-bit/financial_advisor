@@ -194,3 +194,60 @@ export const lendings = mysqlTable("lendings", {
 
 export type Lending = typeof lendings.$inferSelect;
 export type InsertLending = typeof lendings.$inferInsert;
+
+/**
+ * Investment transactions (buy/sell records)
+ */
+export const investmentTransactions = mysqlTable("investment_transactions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  investmentId: int("investmentId"),
+  symbol: varchar("symbol", { length: 20 }).notNull(),
+  assetType: mysqlEnum("assetType", ["stock", "crypto", "commodity", "etf", "mutual_fund", "other"]).notNull(),
+  transactionType: mysqlEnum("transactionType", ["buy", "sell"]).notNull(),
+  quantity: decimal("quantity", { precision: 18, scale: 8 }).notNull(),
+  pricePerUnit: decimal("pricePerUnit", { precision: 12, scale: 2 }).notNull(),
+  totalAmount: decimal("totalAmount", { precision: 18, scale: 2 }).notNull(),
+  fees: decimal("fees", { precision: 12, scale: 2 }).default("0").notNull(),
+  notes: text("notes"),
+  transactionDate: datetime("transactionDate").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type InvestmentTransaction = typeof investmentTransactions.$inferSelect;
+export type InsertInvestmentTransaction = typeof investmentTransactions.$inferInsert;
+
+/**
+ * Investment price history for tracking price changes
+ */
+export const investmentPriceHistory = mysqlTable("investment_price_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  symbol: varchar("symbol", { length: 20 }).notNull(),
+  price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+  recordedAt: datetime("recordedAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type InvestmentPriceHistory = typeof investmentPriceHistory.$inferSelect;
+export type InsertInvestmentPriceHistory = typeof investmentPriceHistory.$inferInsert;
+
+
+/**
+ * Investment dividends and income tracking
+ */
+export const investmentDividends = mysqlTable("investment_dividends", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  symbol: varchar("symbol", { length: 20 }).notNull(),
+  dividendAmount: decimal("dividendAmount", { precision: 12, scale: 2 }).notNull(),
+  dividendDate: datetime("dividendDate").notNull(),
+  dividendYield: decimal("dividendYield", { precision: 8, scale: 4 }), // Percentage
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type InvestmentDividend = typeof investmentDividends.$inferSelect;
+export type InsertInvestmentDividend = typeof investmentDividends.$inferInsert;

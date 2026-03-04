@@ -1,0 +1,49 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2Aq7fuRAAT7oF4P.root --database GhERUjFNHAWX9pobhR6F3B --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "budgets"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "categories"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "financialInsights"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "investmentPriceHistory"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "investmentTransactions"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "investments"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "lendings"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "marketData"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "notifications"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "savingsGoals"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "transactions"
+    },
+    {
+      "Tables_in_GhERUjFNHAWX9pobhR6F3B": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_GhERUjFNHAWX9pobhR6F3B\n__drizzle_migrations\nbudgets\ncategories\nfinancialInsights\ninvestmentPriceHistory\ninvestmentTransactions\ninvestments\nlendings\nmarketData\nnotifications\nsavingsGoals\ntransactions\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 1541
+}

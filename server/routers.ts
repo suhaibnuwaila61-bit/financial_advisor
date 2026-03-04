@@ -293,6 +293,44 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         return await db.getInvestmentStats(ctx.user.id, input.symbol);
       }),
+
+    // Dividend Management
+    dividends: router({
+      list: protectedProcedure
+        .input(z.object({
+          symbol: z.string().optional()
+        }))
+        .query(async ({ ctx, input }) => {
+          return await db.getInvestmentDividends(ctx.user.id, input.symbol);
+        }),
+
+      create: protectedProcedure
+        .input(z.object({
+          symbol: z.string(),
+          dividendAmount: z.string(),
+          dividendDate: z.date(),
+          dividendYield: z.string().optional(),
+          notes: z.string().optional()
+        }))
+        .mutation(async ({ ctx, input }) => {
+          return await db.createInvestmentDividend(
+            ctx.user.id,
+            input.symbol,
+            input.dividendAmount,
+            input.dividendDate,
+            input.dividendYield || null,
+            input.notes || null
+          );
+        }),
+
+      delete: protectedProcedure
+        .input(z.object({
+          id: z.number()
+        }))
+        .mutation(async ({ ctx, input }) => {
+          return await db.deleteInvestmentDividend(ctx.user.id, input.id);
+        })
+    })
   }),
 
   // Savings Goals

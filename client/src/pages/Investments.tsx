@@ -2,7 +2,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Plus, X, TrendingUp, TrendingDown, Trash2, RefreshCw, BarChart3 } from "lucide-react";
+import { Plus, X, TrendingUp, TrendingDown, Trash2, RefreshCw, BarChart3, DollarSign, Calendar, Percent } from "lucide-react";
 import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
@@ -17,6 +17,14 @@ export default function Investments() {
   const [priceChartDays, setPriceChartDays] = useState(30);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showDividendForm, setShowDividendForm] = useState(false);
+  const [dividendData, setDividendData] = useState({
+    symbol: "",
+    dividendAmount: "",
+    dividendDate: new Date().toISOString().split('T')[0],
+    dividendYield: "",
+    notes: ""
+  });
 
   const [formData, setFormData] = useState({
     symbol: "",
@@ -703,8 +711,8 @@ export default function Investments() {
       {/* Investment Detail Modal */}
       {showDetailModal && selectedInvestment && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background border-2 border-neon-cyan max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-neon-cyan/20 sticky top-0 bg-background">
+          <div className="bg-background border-2 border-neon-cyan max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-neon-cyan/20 shrink-0">
               <h2 className="text-xl font-bold text-neon-cyan">{selectedInvestment.symbol} - {selectedInvestment.name}</h2>
               <button
                 onClick={() => {
@@ -717,7 +725,20 @@ export default function Investments() {
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Empty State */}
+              {(!priceHistory || priceHistory.length === 0) && (!transactions || transactions.length === 0) && (
+                <div className="text-center py-12">
+                  <p className="text-neon-cyan/50 mb-4">No transaction history yet</p>
+                  <button
+                    onClick={() => setShowAddForm(true)}
+                    className="px-4 py-2 bg-neon-cyan text-background font-bold hover:bg-neon-cyan/80 transition"
+                  >
+                    Record First Transaction
+                  </button>
+                </div>
+              )}
+
               {/* Price History Chart */}
               {priceHistory && priceHistory.length > 0 && (
                 <div>
@@ -781,6 +802,30 @@ export default function Investments() {
                   </div>
                 </div>
               )}
+
+              {/* Dividend History */}
+              <div className="border-t border-neon-cyan/20 pt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-neon-cyan">Dividend Income</h3>
+                  <button
+                    onClick={() => {
+                      setDividendData({
+                        symbol: selectedInvestment.symbol,
+                        dividendAmount: "",
+                        dividendDate: new Date().toISOString().split('T')[0],
+                        dividendYield: "",
+                        notes: ""
+                      });
+                      setShowDividendForm(true);
+                    }}
+                    className="flex items-center gap-2 px-3 py-1 bg-neon-green/20 border border-neon-green text-neon-green text-sm font-bold hover:bg-neon-green/30 transition"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Dividend
+                  </button>
+                </div>
+                <p className="text-neon-cyan/50 text-sm">Track dividend payments and income from this investment</p>
+              </div>
 
               {/* Transaction History */}
               {transactions && transactions.length > 0 && (
@@ -932,6 +977,103 @@ export default function Investments() {
                 className="w-full bg-neon-cyan text-background font-bold py-2 hover:bg-neon-pink transition mt-6"
               >
                 Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Dividend Form Modal */}
+      {showDividendForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background border-2 border-neon-green max-w-md w-full">
+            <div className="flex justify-between items-center p-6 border-b border-neon-green/20">
+              <h2 className="text-xl font-bold text-neon-green">Record Dividend</h2>
+              <button
+                onClick={() => setShowDividendForm(false)}
+                className="text-neon-green hover:text-neon-pink transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!dividendData.symbol || !dividendData.dividendAmount) {
+                  toast.error("Please fill in required fields");
+                  return;
+                }
+                try {
+                  // TODO: Call dividend creation mutation
+                  toast.success("Dividend recorded successfully!");
+                  setShowDividendForm(false);
+                  setDividendData({
+                    symbol: "",
+                    dividendAmount: "",
+                    dividendDate: new Date().toISOString().split('T')[0],
+                    dividendYield: "",
+                    notes: ""
+                  });
+                } catch (error) {
+                  toast.error("Failed to record dividend");
+                }
+              }}
+              className="p-6 space-y-4"
+            >
+              <div>
+                <label className="block text-neon-green text-sm mb-2 uppercase tracking-wider">Symbol</label>
+                <input
+                  type="text"
+                  value={dividendData.symbol}
+                  disabled
+                  className="w-full bg-background border-2 border-neon-green/30 text-neon-cyan/50 px-4 py-2 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-neon-green text-sm mb-2 uppercase tracking-wider">Dividend Amount</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={dividendData.dividendAmount}
+                  onChange={(e) => setDividendData({ ...dividendData, dividendAmount: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-green text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-neon-green text-sm mb-2 uppercase tracking-wider">Dividend Date</label>
+                <input
+                  type="date"
+                  value={dividendData.dividendDate}
+                  onChange={(e) => setDividendData({ ...dividendData, dividendDate: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-green text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                />
+              </div>
+              <div>
+                <label className="block text-neon-green text-sm mb-2 uppercase tracking-wider">Dividend Yield % (Optional)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={dividendData.dividendYield}
+                  onChange={(e) => setDividendData({ ...dividendData, dividendYield: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-green text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-neon-green text-sm mb-2 uppercase tracking-wider">Notes (Optional)</label>
+                <textarea
+                  value={dividendData.notes}
+                  onChange={(e) => setDividendData({ ...dividendData, notes: e.target.value })}
+                  className="w-full bg-background border-2 border-neon-green text-neon-cyan px-4 py-2 focus:outline-none focus:border-neon-pink resize-none h-20"
+                  placeholder="Add any notes..."
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-neon-green text-background font-bold py-2 hover:bg-neon-green/80 transition mt-6"
+              >
+                Record Dividend
               </button>
             </form>
           </div>

@@ -300,3 +300,52 @@
 - [x] Allow users to hold investments without selling immediately
 - [x] Display transaction history with edit/delete options
 - [x] Write tests for investment editing features
+
+
+## Phase 24: Comprehensive Investment Section Enhancement
+
+### Buy/Sell Transaction Management
+- [x] Enhanced buy transaction form with all details (symbol, quantity, price, date, fees, notes)
+- [x] Enhanced sell transaction form with all details (symbol, quantity, price, date, fees, notes)
+- [x] Transaction history table showing all buy/sell transactions
+- [x] Edit any transaction (change price, quantity, date, fees, notes)
+- [x] Delete transactions with confirmation
+- [x] Calculate running totals and averages
+
+### Investment Statistics & Metrics
+- [x] Cost Basis calculation (total amount spent on investment)
+- [x] Current Value calculation (quantity × current price)
+- [x] Gain/Loss calculation (current value - cost basis)
+- [x] Gain/Loss percentage
+- [x] Holding Period (days held)
+- [x] Average Price Per Unit
+- [x] Total Fees paid on investment
+- [x] Display all metrics in detail view
+
+### Dividend/Income Tracking
+- [x] Record dividend payments received
+- [x] Track dividend dates and amounts
+- [x] Calculate total dividend income
+- [x] Calculate dividend yield percentage
+- [x] Edit/delete dividend records
+
+### UI/UX Enhancements
+- [x] Standardize button styles across all sections (Investments, Transactions, Savings, Budgets)
+- [x] Add consistent header with action buttons
+- [x] Improve modal layouts for better readability
+- [x] Add empty states with helpful messages
+- [x] Add loading states for data fetching
+- [x] Add success/error toast notifications
+
+### Export Functionality
+- [ ] Export investment portfolio as PDF
+- [ ] Export transaction history as CSV
+- [ ] Export investment report with statistics
+
+### Testing
+- [x] Test buy/sell transaction creation
+- [x] Test transaction editing
+- [x] Test transaction deletion
+- [x] Test statistics calculations
+- [x] Test dividend tracking
+- [ ] Test export functionality

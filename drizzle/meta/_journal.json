@@ -22,6 +22,20 @@
       "when": 1770622244630,
       "tag": "0002_minor_dormammu",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1770879538334,
+      "tag": "0003_fearless_jazinda",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1772611091215,
+      "tag": "0004_peaceful_cobalt_man",
+      "breakpoints": true
     }
   ]
 }

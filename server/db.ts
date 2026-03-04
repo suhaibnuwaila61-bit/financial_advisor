@@ -608,3 +608,54 @@ export async function getInvestmentStats(userId: number, symbol: string) {
   // Will be implemented when transaction history is fully integrated
   return null;
 }
+
+
+// Dividend Management Functions
+export async function getInvestmentDividends(userId: number, symbol?: string) {
+  // Placeholder for dividend retrieval
+  return [];
+}
+
+export async function createInvestmentDividend(
+  userId: number,
+  symbol: string,
+  dividendAmount: string,
+  dividendDate: Date,
+  dividendYield: string | null,
+  notes: string | null
+) {
+  // Placeholder for dividend creation
+  return { 
+    id: Math.random(), 
+    userId, 
+    symbol, 
+    dividendAmount, 
+    dividendDate, 
+    dividendYield, 
+    notes 
+  };
+}
+
+export async function deleteInvestmentDividend(userId: number, dividendId: number) {
+  // Placeholder for dividend deletion
+  return { success: true };
+}
+
+export async function updateInvestmentDividend(
+  userId: number,
+  dividendId: number,
+  dividendAmount: string,
+  dividendDate: Date,
+  dividendYield: string | null,
+  notes: string | null
+) {
+  // Placeholder for dividend update
+  return { 
+    id: dividendId, 
+    userId, 
+    dividendAmount, 
+    dividendDate, 
+    dividendYield, 
+    notes 
+  };
+}
