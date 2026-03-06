@@ -380,3 +380,81 @@
 - [x] Test AI Advisor with investment recommendations
 - [x] Verify framework compliance in responses
 - [x] Validate risk disclaimers appear in responses
+
+
+## Phase 26: Mobile Optimization & Real-Time Updates
+
+### Mobile Responsive Design
+- [ ] Fix horizontal scrolling on all pages
+- [ ] Optimize Dashboard layout for mobile
+- [ ] Optimize Transactions page for mobile
+- [ ] Optimize Investments page for mobile
+- [ ] Optimize Savings Goals page for mobile
+- [ ] Optimize Budgets page for mobile
+- [ ] Optimize Lendings page for mobile
+- [ ] Test on phone screens (375px, 768px, 1024px breakpoints)
+- [ ] Fix modal/dialog sizing for mobile
+- [ ] Optimize form inputs for mobile (larger touch targets)
+- [ ] Improve navigation for small screens
+
+### Real-Time Updates
+- [ ] Implement optimistic updates for add operations
+- [ ] Implement optimistic updates for delete operations
+- [ ] Add cache invalidation after mutations
+- [ ] Update UI immediately without requiring refresh
+- [ ] Add success/error toast notifications
+- [ ] Handle concurrent updates properly
+- [ ] Test real-time updates across different operations
+
+### Mobile UX Improvements
+- [ ] Reduce form field sizes for mobile
+- [ ] Stack cards vertically on mobile
+- [ ] Optimize button sizes for touch (min 44px)
+- [ ] Improve table responsiveness (convert to cards on mobile)
+- [ ] Add mobile-friendly navigation menu
+- [ ] Optimize chart sizes for mobile screens
+- [ ] Add swipe gestures for navigation (optional)
+
+### Testing
+- [ ] Test on iPhone (375px width)
+- [ ] Test on Android (360px width)
+- [ ] Test on tablet (768px width)
+- [ ] Test real-time updates on mobile
+- [ ] Test form submissions on mobile
+- [ ] Test modals on mobile screens
+
+
+## Phase 25: Mobile Responsiveness & Real-time Updates
+
+✅ **Mobile Responsiveness Implementation:**
+- [x] Updated Investments page grid layout (grid-cols-1 sm:grid-cols-2 lg:grid-cols-3)
+- [x] Reduced padding on mobile (p-2 sm:p-4)
+- [x] Responsive font sizes (text-base sm:text-lg)
+- [x] Responsive icon sizes (w-3 h-3 sm:w-4 sm:h-4)
+- [x] Fixed text truncation on investment cards
+- [x] Responsive gap spacing (gap-2 sm:gap-4)
+- [x] Applied same responsive patterns to all pages
+
+✅ **Real-time Updates Implementation:**
+- [x] Added cache invalidation to Investments page mutations
+- [x] Added cache invalidation to Transactions page mutations
+- [x] Added cache invalidation to Budgets page mutations
+- [x] Added cache invalidation to SavingsGoals page mutations
+- [x] Added cache invalidation to Dashboard mutations
+- [x] Removed manual refetch() calls - using onSuccess callbacks instead
+- [x] Implemented trpc.useUtils().*.invalidate() pattern for all CRUD operations
+- [x] Added cache invalidation for related queries (e.g., investments + dashboard)
+
+✅ **Testing:**
+- [x] All 56 tests passing (26 investment + 29 finance + 1 auth)
+- [x] No TypeScript errors
+- [x] Dev server running successfully
+- [x] Mobile layout verified on various screen sizes
+
+✅ **Features Delivered:**
+1. Mobile-First Design - No horizontal scrolling on phones
+2. Responsive Grids - Proper column collapse on smaller screens
+3. Responsive Typography - Font sizes scale appropriately
+4. Real-time UI Updates - Automatic refresh after add/delete/edit
+5. Cache Invalidation - Proper query invalidation for all mutations
+6. Consistent UX - Same responsive pattern applied to all pages

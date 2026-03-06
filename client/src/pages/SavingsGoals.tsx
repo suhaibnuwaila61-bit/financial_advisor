@@ -15,7 +15,7 @@ export default function SavingsGoals() {
     deadline: ""
   });
 
-  const { data: goals = [], isLoading, refetch } = trpc.savingsGoals.list.useQuery();
+  const { data: goals = [], isLoading } = trpc.savingsGoals.list.useQuery();
   const createGoal = trpc.savingsGoals.create.useMutation();
   const deleteGoal = trpc.savingsGoals.delete.useMutation();
 
@@ -25,9 +25,13 @@ export default function SavingsGoals() {
     }
 
     try {
-      await deleteGoal.mutateAsync({ id: goalId });
+      await deleteGoal.mutateAsync({ id: goalId }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          trpc.useUtils().savingsGoals.list.invalidate();
+        }
+      });
       toast.success("Savings goal deleted successfully!");
-      refetch();
     } catch (error) {
       toast.error("Failed to delete savings goal");
     }
@@ -47,12 +51,16 @@ export default function SavingsGoals() {
         targetAmount: formData.targetAmount,
         currentAmount: formData.currentAmount || "0",
         deadline: new Date(formData.deadline)
+      }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          trpc.useUtils().savingsGoals.list.invalidate();
+        }
       });
 
       toast.success("Savings goal created successfully!");
       setFormData({ name: "", targetAmount: "", currentAmount: "0", deadline: "" });
       setShowAddForm(false);
-      refetch();
     } catch (error) {
       toast.error("Failed to create savings goal");
     }

@@ -40,10 +40,14 @@ export default function Transactions() {
   };
 
   const dateRange = useMemo(() => getDateRange(), [timeRange]);
-  const { data: transactions = [], isLoading, refetch } = trpc.transactions.list.useQuery(dateRange);
+  const { data: transactions = [], isLoading } = trpc.transactions.list.useQuery(dateRange);
   const { data: categories = [] } = trpc.categories.list.useQuery();
   const createTransaction = trpc.transactions.create.useMutation();
   const deleteTransaction = trpc.transactions.delete.useMutation();
+
+  const getCategoryName = (categoryId: number) => {
+    return categories.find(c => c.id === categoryId)?.name || "General";
+  };
 
   const handleDeleteTransaction = async (transactionId: number) => {
     if (!confirm("Are you sure you want to delete this transaction?")) {
@@ -51,9 +55,13 @@ export default function Transactions() {
     }
 
     try {
-      await deleteTransaction.mutateAsync({ id: transactionId });
+      await deleteTransaction.mutateAsync({ id: transactionId }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          trpc.useUtils().transactions.list.invalidate(dateRange);
+        }
+      });
       toast.success("Transaction deleted successfully!");
-      refetch();
     } catch (error) {
       toast.error("Failed to delete transaction");
     }
@@ -75,6 +83,11 @@ export default function Transactions() {
         description: formData.description,
         type: formData.type,
         categoryId: parseInt(formData.categoryId)
+      }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          trpc.useUtils().transactions.list.invalidate(dateRange);
+        }
       });
 
       // Auto-create savings goal if category is Savings
@@ -85,6 +98,11 @@ export default function Transactions() {
             name: formData.description || "Savings Goal",
             targetAmount: (parseFloat(formData.amount) * 2).toString(),
             deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+          }, {
+            onSuccess: () => {
+              // Invalidate savings goals cache
+              trpc.useUtils().savingsGoals.list.invalidate();
+            }
           });
         } catch (e) {
           console.log("Auto-create savings goal skipped");
@@ -94,15 +112,12 @@ export default function Transactions() {
       toast.success(`${formData.type === 'income' ? 'Income' : 'Expense'} added successfully!`);
       setFormData({ amount: "", description: "", type: "expense", categoryId: "1" });
       setShowAddForm(false);
-      refetch();
     } catch (error) {
       toast.error("Failed to add transaction");
     }
   };
 
-  const getCategoryName = (categoryId: number) => {
-    return categories.find(c => c.id === categoryId)?.name || "General";
-  };
+
 
   const formatCurrency = (value: string) => {
     return new Intl.NumberFormat('en-US', {

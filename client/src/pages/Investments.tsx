@@ -91,9 +91,13 @@ export default function Investments() {
     }
 
     try {
-      await deleteInvestment.mutateAsync({ id: investmentId });
+      await deleteInvestment.mutateAsync({ id: investmentId }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          trpc.useUtils().investments.list.invalidate();
+        }
+      });
       toast.success("Investment deleted successfully!");
-      refetch();
     } catch (error) {
       toast.error("Failed to delete investment");
     }
@@ -115,6 +119,11 @@ export default function Investments() {
         quantity: formData.quantity,
         purchasePrice: formData.purchasePrice,
         currentPrice: formData.currentPrice
+      }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          trpc.useUtils().investments.list.invalidate();
+        }
       });
 
       toast.success("Investment added successfully!");
@@ -127,7 +136,6 @@ export default function Investments() {
         currentPrice: ""
       });
       setShowAddForm(false);
-      refetch();
     } catch (error) {
       toast.error("Failed to add investment");
     }
@@ -151,6 +159,15 @@ export default function Investments() {
         fees: transactionData.fees || "0",
         notes: transactionData.notes || undefined,
         transactionDate: new Date(transactionData.transactionDate)
+      }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          if (selectedInvestment) {
+            trpc.useUtils().investments.transactions.list.invalidate({ symbol: selectedInvestment.symbol });
+            trpc.useUtils().investments.stats.invalidate({ symbol: selectedInvestment.symbol });
+          }
+          trpc.useUtils().investments.list.invalidate();
+        }
       });
 
       toast.success("Transaction recorded successfully!");
@@ -165,10 +182,6 @@ export default function Investments() {
         transactionDate: new Date().toISOString().split('T')[0]
       });
       setShowTransactionForm(false);
-      // Refetch transactions if we have a selected investment
-      if (selectedInvestment) {
-        // Trigger refetch by updating selected investment
-      }
     } catch (error) {
       toast.error("Failed to record transaction");
     }
@@ -180,7 +193,16 @@ export default function Investments() {
     }
 
     try {
-      await deleteTransaction.mutateAsync({ id: transactionId });
+      await deleteTransaction.mutateAsync({ id: transactionId }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          if (selectedInvestment) {
+            trpc.useUtils().investments.transactions.list.invalidate({ symbol: selectedInvestment.symbol });
+            trpc.useUtils().investments.stats.invalidate({ symbol: selectedInvestment.symbol });
+          }
+          trpc.useUtils().investments.list.invalidate();
+        }
+      });
       toast.success("Transaction deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete transaction");
@@ -201,6 +223,15 @@ export default function Investments() {
         fees: transactionData.fees || "0",
         notes: transactionData.notes || undefined,
         transactionDate: new Date(transactionData.transactionDate)
+      }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          if (selectedInvestment) {
+            trpc.useUtils().investments.transactions.list.invalidate({ symbol: selectedInvestment.symbol });
+            trpc.useUtils().investments.stats.invalidate({ symbol: selectedInvestment.symbol });
+          }
+          trpc.useUtils().investments.list.invalidate();
+        }
       });
       toast.success("Transaction updated successfully!");
       setEditingTransaction(null);
@@ -270,57 +301,59 @@ export default function Investments() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 px-2 sm:px-4 md:px-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-neon-cyan">Investment Portfolio</h1>
-          <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-neon-cyan">Investment Portfolio</h1>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowTransactionForm(true)}
-              className="flex items-center gap-2 bg-neon-cyan text-background px-4 py-2 font-bold hover:bg-neon-pink transition"
+              className="flex items-center justify-center gap-2 bg-neon-cyan text-background px-3 py-2 text-sm sm:px-4 sm:py-2 font-bold hover:bg-neon-pink transition flex-1 sm:flex-none"
             >
               <BarChart3 className="w-4 h-4" />
-              Record Trade
+              <span className="hidden sm:inline">Record Trade</span>
+              <span className="sm:hidden">Trade</span>
             </button>
             <button
               onClick={handleRefreshPrices}
               disabled={isRefreshing}
-              className="flex items-center gap-2 bg-neon-cyan text-background px-4 py-2 font-bold hover:bg-neon-pink transition disabled:opacity-50"
+              className="flex items-center justify-center gap-2 bg-neon-cyan text-background px-3 py-2 text-sm sm:px-4 sm:py-2 font-bold hover:bg-neon-pink transition disabled:opacity-50 flex-1 sm:flex-none"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </button>
             <button
               onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 bg-neon-cyan text-background px-4 py-2 font-bold hover:bg-neon-pink transition"
+              className="flex items-center justify-center gap-2 bg-neon-cyan text-background px-3 py-2 text-sm sm:px-4 sm:py-2 font-bold hover:bg-neon-pink transition flex-1 sm:flex-none"
             >
               <Plus className="w-4 h-4" />
-              Add Investment
+              <span className="hidden sm:inline">Add Investment</span>
+              <span className="sm:hidden">Add</span>
             </button>
           </div>
         </div>
 
         {/* Portfolio Summary */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-neon-cyan/20 to-neon-cyan/5 border border-neon-cyan/50 p-4">
-            <p className="text-neon-cyan/70 text-sm mb-1">Total Value</p>
-            <p className="text-2xl font-bold text-neon-cyan">{formatCurrency(portfolioMetrics.totalValue)}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+          <div className="bg-gradient-to-br from-neon-cyan/20 to-neon-cyan/5 border border-neon-cyan/50 p-2 sm:p-4">
+            <p className="text-neon-cyan/70 text-xs sm:text-sm mb-1">Total Value</p>
+            <p className="text-lg sm:text-2xl font-bold text-neon-cyan">{formatCurrency(portfolioMetrics.totalValue)}</p>
           </div>
-          <div className="bg-gradient-to-br from-neon-cyan/20 to-neon-cyan/5 border border-neon-cyan/50 p-4">
-            <p className="text-neon-cyan/70 text-sm mb-1">Total Cost</p>
-            <p className="text-2xl font-bold text-neon-cyan">{formatCurrency(portfolioMetrics.totalCost)}</p>
+          <div className="bg-gradient-to-br from-neon-cyan/20 to-neon-cyan/5 border border-neon-cyan/50 p-2 sm:p-4">
+            <p className="text-neon-cyan/70 text-xs sm:text-sm mb-1">Total Cost</p>
+            <p className="text-lg sm:text-2xl font-bold text-neon-cyan">{formatCurrency(portfolioMetrics.totalCost)}</p>
           </div>
-          <div className={`bg-gradient-to-br border p-4 ${portfolioMetrics.totalGainLoss >= 0 
+          <div className={`bg-gradient-to-br border p-2 sm:p-4 ${portfolioMetrics.totalGainLoss >= 0 
             ? 'from-neon-green/20 to-neon-green/5 border-neon-green/50' 
             : 'from-neon-pink/20 to-neon-pink/5 border-neon-pink/50'}`}>
-            <p className={`text-sm mb-1 ${portfolioMetrics.totalGainLoss >= 0 ? 'text-neon-green/70' : 'text-neon-pink/70'}`}>Gain/Loss</p>
-            <p className={`text-2xl font-bold ${portfolioMetrics.totalGainLoss >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
+            <p className={`text-xs sm:text-sm mb-1 ${portfolioMetrics.totalGainLoss >= 0 ? 'text-neon-green/70' : 'text-neon-pink/70'}`}>Gain/Loss</p>
+            <p className={`text-lg sm:text-2xl font-bold ${portfolioMetrics.totalGainLoss >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
               {formatCurrency(portfolioMetrics.totalGainLoss)}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-neon-cyan/20 to-neon-cyan/5 border border-neon-cyan/50 p-4">
-            <p className="text-neon-cyan/70 text-sm mb-1">Transactions</p>
-            <p className="text-2xl font-bold text-neon-cyan">{investments.length}</p>
+          <div className="bg-gradient-to-br from-neon-cyan/20 to-neon-cyan/5 border border-neon-cyan/50 p-2 sm:p-4">
+            <p className="text-neon-cyan/70 text-xs sm:text-sm mb-1">Transactions</p>
+            <p className="text-lg sm:text-2xl font-bold text-neon-cyan">{investments.length}</p>
           </div>
         </div>
 
@@ -379,7 +412,7 @@ export default function Investments() {
             <p>No investments yet. Add one to get started!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
             {investments.map((investment) => {
               const totalValue = parseFloat(investment.quantity) * parseFloat(investment.currentPrice);
               const costValue = parseFloat(investment.quantity) * parseFloat(investment.purchasePrice);
@@ -394,25 +427,25 @@ export default function Investments() {
                     setSelectedInvestment(investment);
                     setShowDetailModal(true);
                   }}
-                  className="bg-gradient-to-br from-background to-background/50 border border-neon-cyan/30 p-4 cursor-pointer hover:border-neon-cyan transition group"
+                  className="bg-gradient-to-br from-background to-background/50 border border-neon-cyan/30 p-2 sm:p-4 cursor-pointer hover:border-neon-cyan transition group"
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-neon-cyan group-hover:text-neon-pink transition">{investment.symbol}</h3>
-                      <p className="text-neon-cyan/50 text-sm">{investment.name}</p>
+                  <div className="flex justify-between items-start mb-2 sm:mb-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base sm:text-lg font-bold text-neon-cyan group-hover:text-neon-pink transition truncate">{investment.symbol}</h3>
+                      <p className="text-neon-cyan/50 text-xs sm:text-sm truncate">{investment.name}</p>
                     </div>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteInvestment(investment.id);
                       }}
-                      className="text-neon-pink hover:text-neon-pink/70 transition"
+                      className="text-neon-pink hover:text-neon-pink/70 transition ml-2 flex-shrink-0"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
 
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                     <div className="flex justify-between">
                       <span className="text-neon-cyan/70">Quantity:</span>
                       <span className="text-neon-cyan font-mono">{parseFloat(investment.quantity).toFixed(2)}</span>
@@ -425,14 +458,14 @@ export default function Investments() {
                       <span className="text-neon-cyan/70">Current Price:</span>
                       <span className="text-neon-cyan font-mono">{formatCurrency(investment.currentPrice)}</span>
                     </div>
-                    <div className="border-t border-neon-cyan/20 pt-3 mt-3">
-                      <div className="flex justify-between mb-2">
+                    <div className="border-t border-neon-cyan/20 pt-2 sm:pt-3 mt-2 sm:mt-3">
+                      <div className="flex justify-between mb-1 sm:mb-2">
                         <span className="text-neon-cyan/70">Current Value:</span>
                         <span className="text-neon-cyan font-bold">{formatCurrency(totalValue.toString())}</span>
                       </div>
                       <div className={`flex justify-between items-center ${isProfit ? 'text-neon-green' : 'text-neon-pink'}`}>
-                        <span className="flex items-center gap-2">
-                          {isProfit ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        <span className="flex items-center gap-1 sm:gap-2">
+                          {isProfit ? <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" /> : <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" />}
                           Gain/Loss
                         </span>
                         <span className="font-bold">

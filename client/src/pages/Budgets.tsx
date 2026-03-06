@@ -16,7 +16,7 @@ export default function Budgets() {
     alertThreshold: "80"
   });
 
-  const { data: budgets = [], isLoading, refetch } = trpc.budgets.list.useQuery();
+  const { data: budgets = [], isLoading } = trpc.budgets.list.useQuery();
   const { data: categories = [] } = trpc.categories.list.useQuery();
   const createBudget = trpc.budgets.create.useMutation();
   const deleteBudget = trpc.budgets.delete.useMutation();
@@ -36,12 +36,16 @@ export default function Budgets() {
         period: formData.period,
         categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
         alertThreshold: parseInt(formData.alertThreshold)
+      }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          trpc.useUtils().budgets.list.invalidate();
+        }
       });
 
       toast.success("Budget created successfully!");
       setFormData({ name: "", limitAmount: "", period: "monthly", categoryId: "", alertThreshold: "80" });
       setShowAddForm(false);
-      refetch();
     } catch (error) {
       toast.error("Failed to create budget");
     }
@@ -53,9 +57,13 @@ export default function Budgets() {
     }
 
     try {
-      await deleteBudget.mutateAsync({ id: budgetId });
+      await deleteBudget.mutateAsync({ id: budgetId }, {
+        onSuccess: () => {
+          // Invalidate cache to trigger real-time update
+          trpc.useUtils().budgets.list.invalidate();
+        }
+      });
       toast.success("Budget deleted successfully!");
-      refetch();
     } catch (error) {
       toast.error("Failed to delete budget");
     }

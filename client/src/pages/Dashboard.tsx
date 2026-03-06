@@ -82,6 +82,12 @@ export default function Dashboard() {
             await updateSavingsGoal.mutateAsync({
               goalId: goalId,
               currentAmount: newAmount
+            }, {
+              onSuccess: () => {
+                // Invalidate cache to trigger real-time update
+                trpc.useUtils().dashboard.getOverview.invalidate();
+                trpc.useUtils().savingsGoals.list.invalidate();
+              }
             });
             toast.success(`Savings goal "${goal.name}" updated!`);
             return;
@@ -94,6 +100,12 @@ export default function Dashboard() {
           description: unifiedForm.description,
           categoryId: categoryId,
           type: unifiedForm.type === "income" ? "income" : "expense"
+        }, {
+          onSuccess: () => {
+            // Invalidate cache to trigger real-time update
+            trpc.useUtils().dashboard.getOverview.invalidate();
+            trpc.useUtils().transactions.list.invalidate();
+          }
         });
         toast.success(`${unifiedForm.type === "income" ? "Income" : "Expense"} added!`);
       } else if (unifiedForm.type === "investment") {
@@ -105,6 +117,12 @@ export default function Dashboard() {
           quantity: "1",
           purchasePrice: unifiedForm.amount,
           currentPrice: unifiedForm.amount
+        }, {
+          onSuccess: () => {
+            // Invalidate cache to trigger real-time update
+            trpc.useUtils().dashboard.getOverview.invalidate();
+            trpc.useUtils().investments.list.invalidate();
+          }
         });
         toast.success("Investment added!");
       } else if (unifiedForm.type === "savings") {
@@ -113,6 +131,12 @@ export default function Dashboard() {
           targetAmount: unifiedForm.amount,
           currentAmount: unifiedForm.amount,
           deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+        }, {
+          onSuccess: () => {
+            // Invalidate cache to trigger real-time update
+            trpc.useUtils().dashboard.getOverview.invalidate();
+            trpc.useUtils().savingsGoals.list.invalidate();
+          }
         });
         toast.success("Savings goal created!");
       } else if (unifiedForm.type === "budget") {
@@ -121,6 +145,12 @@ export default function Dashboard() {
           limitAmount: unifiedForm.amount,
           period: unifiedForm.period as "daily" | "weekly" | "monthly" | "yearly",
           alertThreshold: 80
+        }, {
+          onSuccess: () => {
+            // Invalidate cache to trigger real-time update
+            trpc.useUtils().dashboard.getOverview.invalidate();
+            trpc.useUtils().budgets.list.invalidate();
+          }
         });
         toast.success("Budget created!");
       }
@@ -152,7 +182,17 @@ export default function Dashboard() {
 
   const handleResetFinal = async () => {
     try {
-      await resetAllData.mutateAsync();
+      await resetAllData.mutateAsync(undefined, {
+        onSuccess: () => {
+          // Invalidate all caches after reset
+          trpc.useUtils().dashboard.getOverview.invalidate();
+          trpc.useUtils().transactions.list.invalidate();
+          trpc.useUtils().investments.list.invalidate();
+          trpc.useUtils().savingsGoals.list.invalidate();
+          trpc.useUtils().budgets.list.invalidate();
+          trpc.useUtils().lendings.list.invalidate();
+        }
+      });
       toast.success("All data has been reset!");
       setShowResetConfirm2(false);
     } catch (error) {
