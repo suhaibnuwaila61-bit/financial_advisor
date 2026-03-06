@@ -458,3 +458,14 @@
 4. Real-time UI Updates - Automatic refresh after add/delete/edit
 5. Cache Invalidation - Proper query invalidation for all mutations
 6. Consistent UX - Same responsive pattern applied to all pages
+
+
+## BUG FIX: Failed to Add Entry (Phase 25 - CRITICAL)
+
+✅ **FIXED:**
+- [x] Fixed "Failed to add entry" error when adding transactions, investments, budgets, or savings goals
+- [x] Root cause: Calling trpc.useUtils() (React hook) inside onSuccess callbacks violated Rules of Hooks
+- [x] Solution: Moved utils to top-level component scope and call invalidate() after mutations
+- [x] Updated all pages: Dashboard, Investments, Transactions, Budgets, SavingsGoals
+- [x] All 56 tests passing, no TypeScript errors
+- [x] Verified mutations now complete successfully

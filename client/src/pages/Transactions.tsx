@@ -9,6 +9,7 @@ type TimeRange = "daily" | "weekly" | "monthly";
 
 export default function Transactions() {
   const { user } = useAuth();
+  const utils = trpc.useUtils();
   const [timeRange, setTimeRange] = useState<TimeRange>("monthly");
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -55,12 +56,9 @@ export default function Transactions() {
     }
 
     try {
-      await deleteTransaction.mutateAsync({ id: transactionId }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          trpc.useUtils().transactions.list.invalidate(dateRange);
-        }
-      });
+      await deleteTransaction.mutateAsync({ id: transactionId });
+      // Invalidate cache to trigger real-time update
+      await utils.transactions.list.invalidate(dateRange);
       toast.success("Transaction deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete transaction");
@@ -83,12 +81,9 @@ export default function Transactions() {
         description: formData.description,
         type: formData.type,
         categoryId: parseInt(formData.categoryId)
-      }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          trpc.useUtils().transactions.list.invalidate(dateRange);
-        }
       });
+      // Invalidate cache to trigger real-time update
+      await utils.transactions.list.invalidate(dateRange);
 
       // Auto-create savings goal if category is Savings
       if (categoryName.toLowerCase() === "savings") {
@@ -98,12 +93,9 @@ export default function Transactions() {
             name: formData.description || "Savings Goal",
             targetAmount: (parseFloat(formData.amount) * 2).toString(),
             deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
-          }, {
-            onSuccess: () => {
-              // Invalidate savings goals cache
-              trpc.useUtils().savingsGoals.list.invalidate();
-            }
           });
+          // Invalidate savings goals cache
+          await utils.savingsGoals.list.invalidate();
         } catch (e) {
           console.log("Auto-create savings goal skipped");
         }

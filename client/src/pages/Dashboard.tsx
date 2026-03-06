@@ -9,6 +9,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 export default function Dashboard() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  const utils = trpc.useUtils();
   const { data: overview, isLoading } = trpc.dashboard.getOverview.useQuery();
   const [showUnifiedForm, setShowUnifiedForm] = useState(false);
   const [stats, setStats] = useState({
@@ -82,13 +83,10 @@ export default function Dashboard() {
             await updateSavingsGoal.mutateAsync({
               goalId: goalId,
               currentAmount: newAmount
-            }, {
-              onSuccess: () => {
-                // Invalidate cache to trigger real-time update
-                trpc.useUtils().dashboard.getOverview.invalidate();
-                trpc.useUtils().savingsGoals.list.invalidate();
-              }
             });
+            // Invalidate cache to trigger real-time update
+            await utils.dashboard.getOverview.invalidate();
+            await utils.savingsGoals.list.invalidate();
             toast.success(`Savings goal "${goal.name}" updated!`);
             return;
           }
@@ -100,13 +98,10 @@ export default function Dashboard() {
           description: unifiedForm.description,
           categoryId: categoryId,
           type: unifiedForm.type === "income" ? "income" : "expense"
-        }, {
-          onSuccess: () => {
-            // Invalidate cache to trigger real-time update
-            trpc.useUtils().dashboard.getOverview.invalidate();
-            trpc.useUtils().transactions.list.invalidate();
-          }
         });
+        // Invalidate cache to trigger real-time update
+        await utils.dashboard.getOverview.invalidate();
+        await utils.transactions.list.invalidate();
         toast.success(`${unifiedForm.type === "income" ? "Income" : "Expense"} added!`);
       } else if (unifiedForm.type === "investment") {
         const assetType = (unifiedForm.assetType || "stock") as "stock" | "crypto" | "commodity" | "etf" | "mutual_fund" | "other";
@@ -117,13 +112,10 @@ export default function Dashboard() {
           quantity: "1",
           purchasePrice: unifiedForm.amount,
           currentPrice: unifiedForm.amount
-        }, {
-          onSuccess: () => {
-            // Invalidate cache to trigger real-time update
-            trpc.useUtils().dashboard.getOverview.invalidate();
-            trpc.useUtils().investments.list.invalidate();
-          }
         });
+        // Invalidate cache to trigger real-time update
+        await utils.dashboard.getOverview.invalidate();
+        await utils.investments.list.invalidate();
         toast.success("Investment added!");
       } else if (unifiedForm.type === "savings") {
         await createSavingsGoal.mutateAsync({
@@ -131,13 +123,10 @@ export default function Dashboard() {
           targetAmount: unifiedForm.amount,
           currentAmount: unifiedForm.amount,
           deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
-        }, {
-          onSuccess: () => {
-            // Invalidate cache to trigger real-time update
-            trpc.useUtils().dashboard.getOverview.invalidate();
-            trpc.useUtils().savingsGoals.list.invalidate();
-          }
         });
+        // Invalidate cache to trigger real-time update
+        await utils.dashboard.getOverview.invalidate();
+        await utils.savingsGoals.list.invalidate();
         toast.success("Savings goal created!");
       } else if (unifiedForm.type === "budget") {
         await createBudget.mutateAsync({
@@ -145,13 +134,10 @@ export default function Dashboard() {
           limitAmount: unifiedForm.amount,
           period: unifiedForm.period as "daily" | "weekly" | "monthly" | "yearly",
           alertThreshold: 80
-        }, {
-          onSuccess: () => {
-            // Invalidate cache to trigger real-time update
-            trpc.useUtils().dashboard.getOverview.invalidate();
-            trpc.useUtils().budgets.list.invalidate();
-          }
         });
+        // Invalidate cache to trigger real-time update
+        await utils.dashboard.getOverview.invalidate();
+        await utils.budgets.list.invalidate();
         toast.success("Budget created!");
       }
 
@@ -182,17 +168,14 @@ export default function Dashboard() {
 
   const handleResetFinal = async () => {
     try {
-      await resetAllData.mutateAsync(undefined, {
-        onSuccess: () => {
-          // Invalidate all caches after reset
-          trpc.useUtils().dashboard.getOverview.invalidate();
-          trpc.useUtils().transactions.list.invalidate();
-          trpc.useUtils().investments.list.invalidate();
-          trpc.useUtils().savingsGoals.list.invalidate();
-          trpc.useUtils().budgets.list.invalidate();
-          trpc.useUtils().lendings.list.invalidate();
-        }
-      });
+      await resetAllData.mutateAsync();
+      // Invalidate all caches after reset
+      await utils.dashboard.getOverview.invalidate();
+      await utils.transactions.list.invalidate();
+      await utils.investments.list.invalidate();
+      await utils.savingsGoals.list.invalidate();
+      await utils.budgets.list.invalidate();
+      await utils.lendings.list.invalidate();
       toast.success("All data has been reset!");
       setShowResetConfirm2(false);
     } catch (error) {

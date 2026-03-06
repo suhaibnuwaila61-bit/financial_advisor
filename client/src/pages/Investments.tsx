@@ -10,6 +10,7 @@ type AssetType = "stock" | "crypto" | "etf" | "mutual_fund" | "commodity" | "oth
 
 export default function Investments() {
   const { user } = useAuth();
+  const utils = trpc.useUtils();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
@@ -91,12 +92,9 @@ export default function Investments() {
     }
 
     try {
-      await deleteInvestment.mutateAsync({ id: investmentId }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          trpc.useUtils().investments.list.invalidate();
-        }
-      });
+      await deleteInvestment.mutateAsync({ id: investmentId });
+      // Invalidate cache to trigger real-time update
+      await utils.investments.list.invalidate();
       toast.success("Investment deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete investment");
@@ -119,12 +117,9 @@ export default function Investments() {
         quantity: formData.quantity,
         purchasePrice: formData.purchasePrice,
         currentPrice: formData.currentPrice
-      }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          trpc.useUtils().investments.list.invalidate();
-        }
       });
+      // Invalidate cache to trigger real-time update
+      await utils.investments.list.invalidate();
 
       toast.success("Investment added successfully!");
       setFormData({
@@ -159,16 +154,13 @@ export default function Investments() {
         fees: transactionData.fees || "0",
         notes: transactionData.notes || undefined,
         transactionDate: new Date(transactionData.transactionDate)
-      }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          if (selectedInvestment) {
-            trpc.useUtils().investments.transactions.list.invalidate({ symbol: selectedInvestment.symbol });
-            trpc.useUtils().investments.stats.invalidate({ symbol: selectedInvestment.symbol });
-          }
-          trpc.useUtils().investments.list.invalidate();
-        }
       });
+      // Invalidate cache to trigger real-time update
+      if (selectedInvestment) {
+        await utils.investments.transactions.list.invalidate({ symbol: selectedInvestment.symbol });
+        await utils.investments.stats.invalidate({ symbol: selectedInvestment.symbol });
+      }
+      await utils.investments.list.invalidate();
 
       toast.success("Transaction recorded successfully!");
       setTransactionData({
@@ -193,16 +185,13 @@ export default function Investments() {
     }
 
     try {
-      await deleteTransaction.mutateAsync({ id: transactionId }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          if (selectedInvestment) {
-            trpc.useUtils().investments.transactions.list.invalidate({ symbol: selectedInvestment.symbol });
-            trpc.useUtils().investments.stats.invalidate({ symbol: selectedInvestment.symbol });
-          }
-          trpc.useUtils().investments.list.invalidate();
-        }
-      });
+      await deleteTransaction.mutateAsync({ id: transactionId });
+      // Invalidate cache to trigger real-time update
+      if (selectedInvestment) {
+        await utils.investments.transactions.list.invalidate({ symbol: selectedInvestment.symbol });
+        await utils.investments.stats.invalidate({ symbol: selectedInvestment.symbol });
+      }
+      await utils.investments.list.invalidate();
       toast.success("Transaction deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete transaction");
@@ -223,16 +212,13 @@ export default function Investments() {
         fees: transactionData.fees || "0",
         notes: transactionData.notes || undefined,
         transactionDate: new Date(transactionData.transactionDate)
-      }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          if (selectedInvestment) {
-            trpc.useUtils().investments.transactions.list.invalidate({ symbol: selectedInvestment.symbol });
-            trpc.useUtils().investments.stats.invalidate({ symbol: selectedInvestment.symbol });
-          }
-          trpc.useUtils().investments.list.invalidate();
-        }
       });
+      // Invalidate cache to trigger real-time update
+      if (selectedInvestment) {
+        await utils.investments.transactions.list.invalidate({ symbol: selectedInvestment.symbol });
+        await utils.investments.stats.invalidate({ symbol: selectedInvestment.symbol });
+      }
+      await utils.investments.list.invalidate();
       toast.success("Transaction updated successfully!");
       setEditingTransaction(null);
       setShowEditForm(false);

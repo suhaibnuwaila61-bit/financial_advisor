@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 export default function SavingsGoals() {
   const { user } = useAuth();
+  const utils = trpc.useUtils();
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -25,12 +26,9 @@ export default function SavingsGoals() {
     }
 
     try {
-      await deleteGoal.mutateAsync({ id: goalId }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          trpc.useUtils().savingsGoals.list.invalidate();
-        }
-      });
+      await deleteGoal.mutateAsync({ id: goalId });
+      // Invalidate cache to trigger real-time update
+      await utils.savingsGoals.list.invalidate();
       toast.success("Savings goal deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete savings goal");
@@ -51,12 +49,9 @@ export default function SavingsGoals() {
         targetAmount: formData.targetAmount,
         currentAmount: formData.currentAmount || "0",
         deadline: new Date(formData.deadline)
-      }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          trpc.useUtils().savingsGoals.list.invalidate();
-        }
       });
+      // Invalidate cache to trigger real-time update
+      await utils.savingsGoals.list.invalidate();
 
       toast.success("Savings goal created successfully!");
       setFormData({ name: "", targetAmount: "", currentAmount: "0", deadline: "" });

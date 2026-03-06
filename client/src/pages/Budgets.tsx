@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 export default function Budgets() {
   const { user } = useAuth();
+  const utils = trpc.useUtils();
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -36,12 +37,9 @@ export default function Budgets() {
         period: formData.period,
         categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
         alertThreshold: parseInt(formData.alertThreshold)
-      }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          trpc.useUtils().budgets.list.invalidate();
-        }
       });
+      // Invalidate cache to trigger real-time update
+      await utils.budgets.list.invalidate();
 
       toast.success("Budget created successfully!");
       setFormData({ name: "", limitAmount: "", period: "monthly", categoryId: "", alertThreshold: "80" });
@@ -57,12 +55,9 @@ export default function Budgets() {
     }
 
     try {
-      await deleteBudget.mutateAsync({ id: budgetId }, {
-        onSuccess: () => {
-          // Invalidate cache to trigger real-time update
-          trpc.useUtils().budgets.list.invalidate();
-        }
-      });
+      await deleteBudget.mutateAsync({ id: budgetId });
+      // Invalidate cache to trigger real-time update
+      await utils.budgets.list.invalidate();
       toast.success("Budget deleted successfully!");
     } catch (error) {
       toast.error("Failed to delete budget");
