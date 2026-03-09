@@ -10,6 +10,7 @@ import Advisor from "@/pages/Advisor";
 import Lendings from "@/pages/Lendings";
 import AIChat from "@/pages/AIChat";
 import Analytics from "@/pages/Analytics";
+import Settings from "@/pages/Settings";
 import Demo from "@/pages/Demo";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -31,6 +32,7 @@ function Router() {
       <Route path={"/lendings"} component={Lendings} />
       <Route path={"/ai-chat"} component={AIChat} />
       <Route path={"/analytics"} component={Analytics} />
+      <Route path={"/settings"} component={Settings} />
       <Route path={"/404"} component={NotFound} />      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>

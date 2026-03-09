@@ -5,11 +5,10 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useLanguage } from "@/contexts/LanguageContext";
+
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { t } = useLanguage();
   const [, navigate] = useLocation();
   const utils = trpc.useUtils();
   const { data: overview, isLoading } = trpc.dashboard.getOverview.useQuery();
@@ -70,7 +69,7 @@ export default function Dashboard() {
     e.preventDefault();
     
     if (!unifiedForm.amount) {
-      toast.error(t("pleaseFillAllFields"));
+      toast.error("Please fill in all fields");
       return;
     }
 
@@ -89,7 +88,7 @@ export default function Dashboard() {
             // Invalidate cache to trigger real-time update
             await utils.dashboard.getOverview.invalidate();
             await utils.savingsGoals.list.invalidate();
-            toast.success(`${t("savingsGoalsPage")} "${goal.name}" ${t("successfullyAdded")}`);
+            toast.success(`Savings goal "${goal.name}" updated!`);
             return;
           }
         } else {
@@ -203,22 +202,22 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-lg p-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold opacity-90">{t("netWorth")}</h2>
+              <h2 className="text-lg font-semibold opacity-90">Net Worth</h2>
               <DollarSign className="w-8 h-8 opacity-30" />
             </div>
             <p className="text-4xl font-bold mb-2">${netWorth.toFixed(2)}</p>
-            <p className="text-sm opacity-80">{t("totalAssetsMinusTotalLiabilities")}</p>
+            <p className="text-sm opacity-80">Total Assets - Total Liabilities</p>
           </div>
 
           <div className="bg-gradient-to-br from-green-600 to-green-700 text-white rounded-lg shadow-lg p-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold opacity-90">{t("netLendingPosition")}</h2>
+              <h2 className="text-lg font-semibold opacity-90">Net Lending Position</h2>
               <Wallet className="w-8 h-8 opacity-30" />
             </div>
             <p className={`text-4xl font-bold mb-2 ${netLendingPosition >= 0 ? 'text-green-200' : 'text-red-200'}`}>
               ${netLendingPosition.toFixed(2)}
             </p>
-            <p className="text-sm opacity-80">{t("moneyLentMinusMoneyBorrowed")}</p>
+            <p className="text-sm opacity-80">Money Lent - Money Borrowed</p>
           </div>
         </div>
 
@@ -226,7 +225,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">{t("totalIncome")}</p>
+              <p className="text-sm text-muted-foreground">Total Income</p>
               <TrendingUp className="w-5 h-5 text-green-600" />
             </div>
             <p className="text-2xl font-bold text-green-600">${parseFloat(stats.totalIncome).toFixed(2)}</p>
@@ -234,7 +233,7 @@ export default function Dashboard() {
 
           <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">{t("totalExpenses")}</p>
+              <p className="text-sm text-muted-foreground">Total Expenses</p>
               <TrendingDown className="w-5 h-5 text-red-600" />
             </div>
             <p className="text-2xl font-bold text-red-600">${parseFloat(stats.totalExpenses).toFixed(2)}</p>
@@ -242,7 +241,7 @@ export default function Dashboard() {
 
           <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">{t("portfolioValue")}</p>
+              <p className="text-sm text-muted-foreground">Portfolio Value</p>
               <TrendingUp className="w-5 h-5 text-blue-600" />
             </div>
             <p className="text-2xl font-bold text-blue-600">${parseFloat(stats.portfolioValue).toFixed(2)}</p>
@@ -250,7 +249,7 @@ export default function Dashboard() {
 
           <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">{t("totalSavings")}</p>
+              <p className="text-sm text-muted-foreground">Total Savings</p>
               <Target className="w-5 h-5 text-purple-600" />
             </div>
             <p className="text-2xl font-bold text-purple-600">${parseFloat(stats.totalSavings).toFixed(2)}</p>
@@ -262,23 +261,23 @@ export default function Dashboard() {
           <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <PieChart className="w-5 h-5" />
-              {t("totalAssets")}
+              Total Assets
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">{t("income")}</span>
+                <span className="text-sm text-muted-foreground">Income</span>
                 <span className="font-semibold">${parseFloat(stats.totalIncome).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">{t("savings")}</span>
+                <span className="text-sm text-muted-foreground">Savings</span>
                 <span className="font-semibold">${parseFloat(stats.totalSavings).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">{t("investments")}</span>
+                <span className="text-sm text-muted-foreground">Investments</span>
                 <span className="font-semibold">${parseFloat(stats.portfolioValue).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-border">
-                <span className="font-bold">{t("totalAssets")}</span>
+                <span className="font-bold">Total Assets</span>
                 <span className="text-lg font-bold text-green-600">${totalAssets.toFixed(2)}</span>
               </div>
             </div>
@@ -287,19 +286,19 @@ export default function Dashboard() {
           <div className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-6">
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <PieChart className="w-5 h-5" />
-              {t("totalLiabilities")}
+              Total Liabilities
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">{t("expenses")}</span>
+                <span className="text-sm text-muted-foreground">Expenses</span>
                 <span className="font-semibold">${parseFloat(stats.totalExpenses).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">{t("moneyBorrowed")}</span>
+                <span className="text-sm text-muted-foreground">Money Borrowed</span>
                 <span className="font-semibold">${totalBorrowed.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-border">
-                <span className="font-bold">{t("totalLiabilities")}</span>
+                <span className="font-bold">Total Liabilities</span>
                 <span className="text-lg font-bold text-red-600">${totalLiabilities.toFixed(2)}</span>
               </div>
             </div>

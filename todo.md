@@ -471,24 +471,25 @@
 - [x] Verified mutations now complete successfully
 
 
-## Phase 27: Full Arabic Translation Across App
+## Phase 27: Multi-Language & Theme Support
 
 ✅ **COMPLETED:**
 - [x] Create i18n.ts with comprehensive English and Arabic translations
 - [x] Create LanguageContext with useLanguage hook for language state management
-- [x] Add LanguageProvider to App.tsx
-- [x] Update Dashboard page to use useLanguage hook for all labels and text
+- [x] Create ThemeContext with setTheme method for light/dark mode switching
+- [x] Add LanguageProvider and ThemeProvider to App.tsx
 - [x] Update DashboardLayout sidebar to use useLanguage hook for navigation labels
+- [x] Add Settings icon and link to sidebar navigation
+- [x] Create Settings page with language and theme toggle buttons
 - [x] Add RTL/LTR direction switching based on language
 - [x] All 56 tests passing
 - [x] Dev server running stably with polling-based file watching
 - [x] Vite config updated to avoid EMFILE errors
+- [x] Fixed LanguageProvider context initialization issue
+- [x] Settings page loads successfully and allows language/theme switching
 
-**REMAINING (Can be done incrementally):**
-- [ ] Update Transactions page to use useLanguage hook
-- [ ] Update Investments page to use useLanguage hook
-- [ ] Update Budgets page to use useLanguage hook
-- [ ] Update SavingsGoals page to use useLanguage hook
-- [ ] Update Analytics page to use useLanguage hook
+**NEXT STEPS:**
+- [ ] Update remaining pages (Dashboard, Transactions, Investments, Budgets, SavingsGoals, Analytics) with useLanguage hook
 - [ ] Add Arabic font (Cairo or Tajawal) from Google Fonts
-- [ ] Create Settings page for language/theme switching
+- [ ] Test language switching across all pages
+- [ ] Test theme switching across all pages

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { Language, TranslationKey, getTranslation } from "@/lib/i18n";
 
 interface LanguageContextType {
@@ -12,20 +12,22 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("en");
-  const [mounted, setMounted] = useState(false);
+  const [language, setLanguageState] = useState<Language>(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("language") as Language | null;
+      if (saved && (saved === "en" || saved === "ar")) {
+        return saved;
+      }
+    }
+    return "en";
+  });
 
   useEffect(() => {
-    // Load language from localStorage on mount
-    const saved = localStorage.getItem("language") as Language | null;
-    if (saved && (saved === "en" || saved === "ar")) {
-      setLanguageState(saved);
-      // Set document direction for RTL/LTR
-      document.documentElement.dir = saved === "ar" ? "rtl" : "ltr";
-      document.documentElement.lang = saved;
-    }
-    setMounted(true);
-  }, []);
+    // Set document direction for RTL/LTR
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = language;
+  }, [language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
@@ -38,10 +40,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const t = (key: TranslationKey): string => {
     return getTranslation(language, key);
   };
-
-  if (!mounted) {
-    return <>{children}</>;
-  }
 
   return (
     <LanguageContext.Provider

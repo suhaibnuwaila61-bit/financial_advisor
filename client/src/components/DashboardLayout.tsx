@@ -21,7 +21,7 @@ import {
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Target, Wallet, Brain, Handshake, MessageCircle, BarChart3 } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Target, Wallet, Brain, Handshake, MessageCircle, BarChart3, Settings } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -134,6 +134,7 @@ function DashboardLayoutContent({
     { icon: Handshake, label: t("lendings"), path: "/lendings" },
     { icon: MessageCircle, label: t("aiChat"), path: "/ai-chat" },
     { icon: Brain, label: t("aiAdvisor"), path: "/advisor" },
+    { icon: Settings, label: t("settings"), path: "/settings" },
   ];
   const activeMenuItem = translatedMenuItems.find(item => item.path === location);
 
