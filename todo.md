@@ -493,3 +493,30 @@
 - [ ] Add Arabic font (Cairo or Tajawal) from Google Fonts
 - [ ] Test language switching across all pages
 - [ ] Test theme switching across all pages
+
+
+## Phase 28: Full App Arabic Translation & RTL Layout
+
+✅ **COMPLETED:**
+- [x] Expand i18n.ts with complete translations for all UI elements (100+ keys)
+- [x] Add translations for form labels, placeholders, and error messages
+- [x] Add translations for success messages and notifications
+- [x] Add translations for all pages (Analytics, Lendings, AI Chat, AI Advisor)
+- [x] Add translations for general UI elements (loading, error, success, etc.)
+- [x] Update Dashboard page with full translation coverage
+- [x] Add useLanguage hook to Dashboard for all text labels
+- [x] Translate all Dashboard headings, buttons, and messages
+- [x] All 56 tests passing
+- [x] Dev server running stably
+
+**REMAINING (Next Steps):**
+- [ ] Update Transactions page with full translation coverage
+- [ ] Update Investments page with full translation coverage
+- [ ] Update Budgets page with full translation coverage
+- [ ] Update SavingsGoals page with full translation coverage
+- [ ] Update Analytics page with full translation coverage
+- [ ] Implement RTL layout switching for sidebar and content
+- [ ] Add RTL styling for proper text alignment and spacing
+- [ ] Test Arabic translation across all pages
+- [ ] Test RTL layout switching when language changes
+- [ ] Verify all form inputs work correctly in RTL mode

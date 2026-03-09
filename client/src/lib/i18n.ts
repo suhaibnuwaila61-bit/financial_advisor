@@ -117,6 +117,77 @@ export const translations = {
     pleaseSelectCategory: "Please select a category",
     pleaseSelectType: "Please select a type",
     pleaseFillAllFields: "Please fill in all fields",
+    
+    // Form Labels & Placeholders
+    enterAmount: "Enter amount",
+    enterDescription: "Enter description",
+    selectCategory: "Select category",
+    selectType: "Select type",
+    selectAssetType: "Select asset type",
+    enterSymbol: "Enter symbol",
+    enterName: "Enter name",
+    enterQuantity: "Enter quantity",
+    enterPurchasePrice: "Enter purchase price",
+    enterCurrentPrice: "Enter current price",
+    enterTargetAmount: "Enter target amount",
+    enterCurrentAmount: "Enter current amount",
+    enterDeadline: "Enter deadline",
+    enterBudgetName: "Enter budget name",
+    enterLimitAmount: "Enter limit amount",
+    selectPeriod: "Select period",
+    enterAlertThreshold: "Enter alert threshold",
+    
+    // Success Messages
+    transactionAdded: "Transaction added successfully!",
+    investmentAdded: "Investment added successfully!",
+    savingsGoalAdded: "Savings goal added successfully!",
+    budgetAdded: "Budget added successfully!",
+    
+    // Error Messages
+    failedToAddTransaction: "Failed to add transaction",
+    failedToAddInvestment: "Failed to add investment",
+    failedToAddSavingsGoal: "Failed to add savings goal",
+    failedToAddBudget: "Failed to add budget",
+    
+    // Analytics
+    analyticsPage: "Analytics",
+    monthlySpending: "Monthly Spending",
+    incomeVsExpenses: "Income vs Expenses",
+    investmentBreakdown: "Investment Breakdown",
+    
+    // Lendings
+    lendingsPage: "Lendings",
+    addLending: "Add Lending",
+    lender: "Lender",
+    borrower: "Borrower",
+    lendingAmount: "Lending Amount",
+    lendingDate: "Lending Date",
+    
+    // AI Chat
+    aiChatPage: "AI Chat",
+    typeMessage: "Type your message...",
+    send: "Send",
+    
+    // AI Advisor
+    aiAdvisorPage: "AI Advisor",
+    getAdvice: "Get Advice",
+    
+    // General
+    loading: "Loading...",
+    error: "Error",
+    success: "Success",
+    warning: "Warning",
+    info: "Info",
+    noData: "No data available",
+    backToDashboard: "Back to Dashboard",
+    logout: "Logout",
+    profile: "Profile",
+    preferences: "Preferences",
+    help: "Help",
+    about: "About",
+    contact: "Contact",
+    privacyPolicy: "Privacy Policy",
+    termsOfService: "Terms of Service",
   },
   ar: {
     // Navigation
@@ -235,6 +306,77 @@ export const translations = {
     pleaseSelectCategory: "يرجى تحديد فئة",
     pleaseSelectType: "يرجى تحديد نوع",
     pleaseFillAllFields: "يرجى ملء جميع الحقول",
+    
+    // Form Labels & Placeholders
+    enterAmount: "أدخل المبلغ",
+    enterDescription: "أدخل الوصف",
+    selectCategory: "اختر الفئة",
+    selectType: "اختر النوع",
+    selectAssetType: "اختر نوع الأصل",
+    enterSymbol: "أدخل الرمز",
+    enterName: "أدخل الاسم",
+    enterQuantity: "أدخل الكمية",
+    enterPurchasePrice: "أدخل سعر الشراء",
+    enterCurrentPrice: "أدخل السعر الحالي",
+    enterTargetAmount: "أدخل المبلغ المستهدف",
+    enterCurrentAmount: "أدخل المبلغ الحالي",
+    enterDeadline: "أدخل الموعد النهائي",
+    enterBudgetName: "أدخل اسم الميزانية",
+    enterLimitAmount: "أدخل مبلغ الحد",
+    selectPeriod: "اختر الفترة",
+    enterAlertThreshold: "أدخل عتبة التنبيه",
+    
+    // Success Messages
+    transactionAdded: "تمت إضافة المعاملة بنجاح!",
+    investmentAdded: "تم إضافة الاستثمار بنجاح!",
+    savingsGoalAdded: "تم إضافة هدف الادخار بنجاح!",
+    budgetAdded: "تمت إضافة الميزانية بنجاح!",
+    
+    // Error Messages
+    failedToAddTransaction: "فشل إضافة المعاملة",
+    failedToAddInvestment: "فشل إضافة الاستثمار",
+    failedToAddSavingsGoal: "فشل إضافة هدف الادخار",
+    failedToAddBudget: "فشل إضافة الميزانية",
+    
+    // Analytics
+    analyticsPage: "التحليلات",
+    monthlySpending: "الإنفاق الشهري",
+    incomeVsExpenses: "الدخل مقابل النفقات",
+    investmentBreakdown: "تفصيل الاستثمارات",
+    
+    // Lendings
+    lendingsPage: "الإقراضات",
+    addLending: "إضافة إقراض",
+    lender: "المُقرض",
+    borrower: "المقترض",
+    lendingAmount: "مبلغ الإقراض",
+    lendingDate: "تاريخ الإقراض",
+    
+    // AI Chat
+    aiChatPage: "دردشة ذكية",
+    typeMessage: "اكتب رسالتك...",
+    send: "إرسال",
+    
+    // AI Advisor
+    aiAdvisorPage: "مستشار ذكي",
+    getAdvice: "احصل على نصيحة",
+    
+    // General
+    loading: "جاري التحميل...",
+    error: "خطأ",
+    success: "نجاح",
+    warning: "تحذير",
+    info: "معلومة",
+    noData: "لا توجد بيانات متاحة",
+    backToDashboard: "العودة إلى لوحة التحكم",
+    logout: "تسجيل الخروج",
+    profile: "الملف الشخصي",
+    preferences: "التفضيلات",
+    help: "مساعدة",
+    about: "حول",
+    contact: "اتصل بنا",
+    privacyPolicy: "سياسة الخصوصية",
+    termsOfService: "شروط الخدمة",
   },
 } as const;
 
