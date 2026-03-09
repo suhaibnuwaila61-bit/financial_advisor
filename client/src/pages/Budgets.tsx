@@ -4,9 +4,11 @@ import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { Plus, X, AlertTriangle, CheckCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Budgets() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const utils = trpc.useUtils();
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({

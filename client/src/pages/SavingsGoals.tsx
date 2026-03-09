@@ -4,9 +4,11 @@ import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { Plus, X, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SavingsGoals() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const utils = trpc.useUtils();
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({

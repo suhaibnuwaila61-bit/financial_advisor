@@ -5,11 +5,13 @@ import { useState } from "react";
 import { Plus, X, TrendingUp, TrendingDown, Trash2, RefreshCw, BarChart3, DollarSign, Calendar, Percent } from "lucide-react";
 import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type AssetType = "stock" | "crypto" | "etf" | "mutual_fund" | "commodity" | "other";
 
 export default function Investments() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const utils = trpc.useUtils();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showTransactionForm, setShowTransactionForm] = useState(false);

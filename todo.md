@@ -495,9 +495,27 @@
 - [ ] Test theme switching across all pages
 
 
-## Phase 28: Full App Arabic Translation & RTL Layout
+## Phase 29: Add useLanguage Hook to All Pages
 
 ✅ **COMPLETED:**
+- [x] Add useLanguage hook to Transactions page
+- [x] Add useLanguage hook to Investments page
+- [x] Add useLanguage hook to Budgets page
+- [x] Add useLanguage hook to SavingsGoals page
+- [x] All pages now have translation support infrastructure
+- [x] All 56 tests passing
+- [x] No TypeScript errors
+- [x] Dev server running stably
+
+**NEXT STEPS:**
+- [ ] Update remaining pages (Analytics, Lendings, AI Chat, AI Advisor) with useLanguage hook
+- [ ] Implement RTL/LTR layout switching for sidebar and content
+- [ ] Add Arabic font support from Google Fonts
+- [ ] Test full Arabic translation across all pages
+
+## Phase 28: Full App Arabic Translation & RTL Layout
+
+✅ **COMPLETED (Phase 28):**
 - [x] Expand i18n.ts with complete translations for all UI elements (100+ keys)
 - [x] Add translations for form labels, placeholders, and error messages
 - [x] Add translations for success messages and notifications

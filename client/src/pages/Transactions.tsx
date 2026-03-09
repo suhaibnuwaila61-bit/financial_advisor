@@ -4,11 +4,13 @@ import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
 import { Plus, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type TimeRange = "daily" | "weekly" | "monthly";
 
 export default function Transactions() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const utils = trpc.useUtils();
   const [timeRange, setTimeRange] = useState<TimeRange>("monthly");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -59,9 +61,9 @@ export default function Transactions() {
       await deleteTransaction.mutateAsync({ id: transactionId });
       // Invalidate cache to trigger real-time update
       await utils.transactions.list.invalidate(dateRange);
-      toast.success("Transaction deleted successfully!");
+      toast.success(t("transactionDeletedSuccessfully"));
     } catch (error) {
-      toast.error("Failed to delete transaction");
+      toast.error(t("failedToDeleteTransaction"));
     }
   };
 
@@ -69,7 +71,7 @@ export default function Transactions() {
     e.preventDefault();
     
     if (!formData.amount || !formData.description) {
-      toast.error("Please fill in all fields");
+      toast.error(t("pleaseFillAllFields"));
       return;
     }
 
@@ -101,11 +103,11 @@ export default function Transactions() {
         }
       }
 
-      toast.success(`${formData.type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+      toast.success(formData.type === 'income' ? t("transactionAdded") : t("transactionAdded"));
       setFormData({ amount: "", description: "", type: "expense", categoryId: "1" });
       setShowAddForm(false);
     } catch (error) {
-      toast.error("Failed to add transaction");
+      toast.error(t("failedToAddTransaction"));
     }
   };
 
