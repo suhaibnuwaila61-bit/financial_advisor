@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { LayoutDashboard, LogOut, PanelLeft, Users, TrendingUp, Target, Wallet, Brain, Handshake, MessageCircle, BarChart3 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -114,13 +115,27 @@ function DashboardLayoutContent({
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const [location, navigate] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+  
+  // Create translated menu items
+  const translatedMenuItems = [
+    { icon: LayoutDashboard, label: t("dashboard"), path: "/dashboard" },
+    { icon: BarChart3, label: t("analytics"), path: "/analytics" },
+    { icon: Wallet, label: t("transactions"), path: "/transactions" },
+    { icon: TrendingUp, label: t("investments"), path: "/investments" },
+    { icon: Target, label: t("savingsGoals"), path: "/savings-goals" },
+    { icon: Users, label: t("budgets"), path: "/budgets" },
+    { icon: Handshake, label: t("lendings"), path: "/lendings" },
+    { icon: MessageCircle, label: t("aiChat"), path: "/ai-chat" },
+    { icon: Brain, label: t("aiAdvisor"), path: "/advisor" },
+  ];
+  const activeMenuItem = translatedMenuItems.find(item => item.path === location);
 
   useEffect(() => {
     if (isCollapsed) {
@@ -187,7 +202,7 @@ function DashboardLayoutContent({
 
           <SidebarContent className="gap-0">
             <SidebarMenu className="px-2 py-1">
-              {menuItems.map(item => {
+            {translatedMenuItems.map((item) => {
                 const isActive = location === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>

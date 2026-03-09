@@ -469,3 +469,26 @@
 - [x] Updated all pages: Dashboard, Investments, Transactions, Budgets, SavingsGoals
 - [x] All 56 tests passing, no TypeScript errors
 - [x] Verified mutations now complete successfully
+
+
+## Phase 27: Full Arabic Translation Across App
+
+✅ **COMPLETED:**
+- [x] Create i18n.ts with comprehensive English and Arabic translations
+- [x] Create LanguageContext with useLanguage hook for language state management
+- [x] Add LanguageProvider to App.tsx
+- [x] Update Dashboard page to use useLanguage hook for all labels and text
+- [x] Update DashboardLayout sidebar to use useLanguage hook for navigation labels
+- [x] Add RTL/LTR direction switching based on language
+- [x] All 56 tests passing
+- [x] Dev server running stably with polling-based file watching
+- [x] Vite config updated to avoid EMFILE errors
+
+**REMAINING (Can be done incrementally):**
+- [ ] Update Transactions page to use useLanguage hook
+- [ ] Update Investments page to use useLanguage hook
+- [ ] Update Budgets page to use useLanguage hook
+- [ ] Update SavingsGoals page to use useLanguage hook
+- [ ] Update Analytics page to use useLanguage hook
+- [ ] Add Arabic font (Cairo or Tajawal) from Google Fonts
+- [ ] Create Settings page for language/theme switching

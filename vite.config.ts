@@ -183,5 +183,10 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    watch: {
+      usePolling: true,
+      interval: 2000,
+      ignored: ["**/node_modules/**", "**/.git/**", "**/dist/**"],
+    },
   },
 });
