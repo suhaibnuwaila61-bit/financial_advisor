@@ -7,6 +7,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, LineChart, Line
 } from "recharts";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type DateRange = "week" | "month" | "year";
 
@@ -22,6 +23,7 @@ const COLORS = [
 ];
 
 export default function Analytics() {
+  const { t } = useLanguage();
   const [dateRange, setDateRange] = useState<DateRange>("month");
   
   const { data: transactions = [] } = trpc.transactions.list.useQuery({});

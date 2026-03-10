@@ -4,11 +4,13 @@ import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { Zap, TrendingUp, Brain, Loader2 } from "lucide-react";
 import { Streamdown } from "streamdown";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type InsightType = "advice" | "spending" | "investment" | "budget";
 
 export default function Advisor() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [activeInsight, setActiveInsight] = useState<InsightType>("advice");
   const [expandedInsight, setExpandedInsight] = useState<InsightType | null>(null);
 

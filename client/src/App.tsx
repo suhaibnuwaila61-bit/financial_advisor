@@ -15,8 +15,9 @@ import Demo from "@/pages/Demo";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { LanguageProvider } from "./contexts/LanguageContext";
+import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 import Home from "./pages/Home";
+import { useEffect } from "react";
 
 function Router() {
   return (
@@ -39,6 +40,27 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const { language } = useLanguage();
+
+  useEffect(() => {
+    if (language === "ar") {
+      document.documentElement.dir = "rtl";
+      document.documentElement.lang = "ar";
+    } else {
+      document.documentElement.dir = "ltr";
+      document.documentElement.lang = "en";
+    }
+  }, [language]);
+
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <Router />
+    </TooltipProvider>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -46,10 +68,7 @@ function App() {
         defaultTheme="dark"
       >
         <LanguageProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <AppContent />
         </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>

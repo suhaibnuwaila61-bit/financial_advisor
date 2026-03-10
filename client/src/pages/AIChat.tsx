@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Image, Loader2, X, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChatMessage {
   id: string;
@@ -16,6 +17,7 @@ interface ChatMessage {
 
 export default function AIChat() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);

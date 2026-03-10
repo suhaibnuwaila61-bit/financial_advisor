@@ -123,6 +123,21 @@
 
 body {
   @apply bg-background text-foreground;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Arabic font styling */
+html[lang="ar"] body {
+  font-family: 'Cairo', sans-serif;
+}
+
+/* RTL text alignment */
+html[dir="rtl"] {
+  text-align: right;
+}
+
+html[dir="ltr"] {
+  text-align: left;
 }
 
 html {

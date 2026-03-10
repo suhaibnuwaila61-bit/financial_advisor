@@ -4,9 +4,11 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Trash2, Plus, DollarSign } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Lendings() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     type: "lent",
