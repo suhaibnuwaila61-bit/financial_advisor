@@ -160,10 +160,10 @@ export default function Analytics() {
           <div>
             <h1 className="text-4xl font-bold text-blue-400 mb-2 flex items-center gap-3">
               <BarChart3 className="w-8 h-8" />
-              ANALYTICS & INSIGHTS
+              {t('analyticsInsights')}
             </h1>
             <p className="text-blue-300/70 text-sm uppercase tracking-widest">
-              Visualize your financial data and trends
+              {t('visualizeFinancialData')}
             </p>
           </div>
           
@@ -179,7 +179,7 @@ export default function Analytics() {
                     : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                 }`}
               >
-                {range === 'week' ? 'Week' : range === 'month' ? 'Month' : 'Year'}
+                {range === 'week' ? t('week') : range === 'month' ? t('month_') : t('year_')}
               </button>
             ))}
           </div>
@@ -188,25 +188,25 @@ export default function Analytics() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-slate-800 border-2 border-blue-500 rounded-lg p-6">
-            <div className="text-blue-300/70 text-sm uppercase tracking-wider mb-2">Total Expenses</div>
+            <div className="text-blue-300/70 text-sm uppercase tracking-wider mb-2">{t('totalExpenses')}</div>
             <div className="text-3xl font-bold text-red-400">{formatCurrency(totalExpenses)}</div>
             <div className="text-blue-300/50 text-xs mt-2">
-              {dateRange === 'week' ? 'Last 7 days' : dateRange === 'month' ? 'Last 30 days' : 'Last 365 days'}
+              {dateRange === 'week' ? t('last7Days') : dateRange === 'month' ? t('last30Days') : t('last365Days')}
             </div>
           </div>
           
           <div className="bg-slate-800 border-2 border-blue-500 rounded-lg p-6">
-            <div className="text-blue-300/70 text-sm uppercase tracking-wider mb-2">Total Income</div>
+            <div className="text-blue-300/70 text-sm uppercase tracking-wider mb-2">{t('totalIncome')}</div>
             <div className="text-3xl font-bold text-green-400">{formatCurrency(totalIncome)}</div>
             <div className="text-blue-300/50 text-xs mt-2">
-              {dateRange === 'week' ? 'Last 7 days' : dateRange === 'month' ? 'Last 30 days' : 'Last 365 days'}
+              {dateRange === 'week' ? t('last7Days') : dateRange === 'month' ? t('last30Days') : t('last365Days')}
             </div>
           </div>
           
           <div className="bg-slate-800 border-2 border-blue-500 rounded-lg p-6">
-            <div className="text-blue-300/70 text-sm uppercase tracking-wider mb-2">Portfolio Value</div>
+            <div className="text-blue-300/70 text-sm uppercase tracking-wider mb-2">{t('portfolioValue')}</div>
             <div className="text-3xl font-bold text-blue-400">{formatCurrency(portfolioValue)}</div>
-            <div className="text-blue-300/50 text-xs mt-2">{investments.length} investments</div>
+            <div className="text-blue-300/50 text-xs mt-2">{investments.length} {t('investmentsCount')}</div>
           </div>
         </div>
 
@@ -215,7 +215,7 @@ export default function Analytics() {
           {/* Expense Trends */}
           {expenseTrends.length > 0 ? (
             <div className="bg-slate-800 border-2 border-blue-500 rounded-lg p-6">
-              <h2 className="text-xl font-bold text-blue-400 mb-4">Expense Trends</h2>
+              <h2 className="text-xl font-bold text-blue-400 mb-4">{t('expenseTrends')}</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={expenseTrends}>
                   <defs>
@@ -237,14 +237,14 @@ export default function Analytics() {
             </div>
           ) : (
             <div className="bg-slate-800 border-2 border-blue-500 rounded-lg p-6 h-80 flex items-center justify-center">
-              <p className="text-blue-300/50">No expense data available for this period</p>
+              <p className="text-blue-300/50">{t('noExpenseData')}</p>
             </div>
           )}
 
           {/* Income vs Expenses */}
           {incomeVsExpenses.length > 0 ? (
             <div className="bg-slate-800 border-2 border-blue-500 rounded-lg p-6">
-              <h2 className="text-xl font-bold text-blue-400 mb-4">Income vs Expenses</h2>
+              <h2 className="text-xl font-bold text-blue-400 mb-4">{t('incomeVsExpenses')}</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={incomeVsExpenses}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />

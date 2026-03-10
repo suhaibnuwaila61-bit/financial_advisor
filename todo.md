@@ -562,3 +562,21 @@
 3. **Complete Page Translation:** All pages have useLanguage hook for full translation support
 4. **Persistent Language Preference:** Language selection saved to localStorage
 5. **Settings Page:** Users can switch between English and Arabic from Settings
+
+
+## Phase 31: Full Analytics Section Arabic Translation
+
+✅ **COMPLETED:**
+- [x] Add comprehensive Arabic translations for all Analytics page text (30+ keys)
+- [x] Update Analytics page to use t() function for all headings and labels
+- [x] Translate header title "Analytics & Insights" to Arabic
+- [x] Translate subtitle "Visualize your financial data and trends" to Arabic
+- [x] Translate date range selector labels (Week, Month, Year) to Arabic
+- [x] Translate summary cards (Total Expenses, Total Income, Portfolio Value) to Arabic
+- [x] Translate time period labels (Last 7 days, Last 30 days, Last 365 days) to Arabic
+- [x] Translate chart titles (Expense Trends, Income vs Expenses) to Arabic
+- [x] Translate empty state messages to Arabic
+- [x] All 56 tests passing
+- [x] No TypeScript errors
+- [x] Analytics page fully functional with Arabic translation
+- [x] RTL layout works correctly on Analytics page
