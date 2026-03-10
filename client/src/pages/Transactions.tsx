@@ -280,13 +280,14 @@ export default function Transactions() {
           </div>
         )}
 
-        {/* Add Button - Hidden, using FAB instead */}
+        {/* Add Button */}
         {!showAddForm && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="hidden"
+            className="px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all flex items-center gap-2 w-full justify-center py-3"
           >
             <Plus className="w-5 h-5" />
+            {t('addTransaction')}
           </button>
         )}
 
@@ -337,17 +338,6 @@ export default function Transactions() {
             ))
           )}
         </div>
-
-        {/* Floating Action Button (FAB) */}
-        {!showAddForm && (
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="fixed bottom-8 right-8 bg-neon-cyan hover:bg-neon-cyan/80 text-background rounded-full w-16 h-16 flex items-center justify-center shadow-lg transition-all hover:scale-110 z-50"
-            title={t('addTransaction')}
-          >
-            <Plus className="w-8 h-8" />
-          </button>
-        )}
       </div>
     </DashboardLayout>
   );
