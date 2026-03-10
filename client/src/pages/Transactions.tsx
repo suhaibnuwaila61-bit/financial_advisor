@@ -140,25 +140,25 @@ export default function Transactions() {
         {/* Header */}
         <div className="border-b-2 border-neon-pink pb-6">
           <h1 className="text-4xl font-bold neon-text-pink mb-2">
-            TRANSACTION LOG
+            {t('transactionLog')}
           </h1>
           <p className="text-neon-cyan text-sm uppercase tracking-widest">
-            Track all income and expense transactions
+            {t('trackAllTransactions')}
           </p>
         </div>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card-neon p-6">
-            <div className="hud-stat-label text-neon-green">Total Income</div>
+            <div className="hud-stat-label text-neon-green">{t('totalIncome')}</div>
             <div className="hud-stat-value text-neon-green">{formatCurrency(incomeTotal.toString())}</div>
           </div>
           <div className="card-neon p-6">
-            <div className="hud-stat-label text-neon-pink">Total Expenses</div>
+            <div className="hud-stat-label text-neon-pink">{t('totalExpenses')}</div>
             <div className="hud-stat-value text-neon-pink">{formatCurrency(expenseTotal.toString())}</div>
           </div>
           <div className="card-neon p-6">
-            <div className="hud-stat-label text-neon-cyan">Net</div>
+            <div className="hud-stat-label text-neon-cyan">{t('net')}</div>
             <div className={`hud-stat-value ${(incomeTotal - expenseTotal) >= 0 ? 'text-neon-green' : 'text-neon-pink'}`}>
               {formatCurrency((incomeTotal - expenseTotal).toString())}
             </div>
@@ -178,7 +178,7 @@ export default function Transactions() {
                     : 'border border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10'
                 }`}
               >
-                {range}
+                {range === 'daily' ? t('daily') : range === 'weekly' ? t('weekly') : t('monthly_')}
               </button>
             ))}
           </div>
@@ -188,7 +188,7 @@ export default function Transactions() {
         {showAddForm && (
           <div className="card-neon-pink p-6 border-neon-pink">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-neon-pink font-bold uppercase tracking-wider">Add Transaction</h3>
+              <h3 className="text-neon-pink font-bold uppercase tracking-wider">{t('addTransaction')}</h3>
               <button onClick={() => setShowAddForm(false)} className="text-neon-pink hover:text-neon-cyan">
                 <X className="w-5 h-5" />
               </button>
@@ -197,7 +197,7 @@ export default function Transactions() {
             <form onSubmit={handleAddTransaction} className="space-y-4">
               {/* Transaction Type */}
               <div>
-                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Type</label>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">{t('type')}</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -226,7 +226,7 @@ export default function Transactions() {
 
               {/* Amount */}
               <div>
-                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Amount ($)</label>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">{t('amount')}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -239,7 +239,7 @@ export default function Transactions() {
 
               {/* Category */}
               <div>
-                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Category</label>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">{t('category')}</label>
                 <select
                   value={formData.categoryId}
                   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
@@ -258,7 +258,7 @@ export default function Transactions() {
 
               {/* Description */}
               <div>
-                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">Description</label>
+                <label className="block text-neon-cyan text-sm mb-2 uppercase tracking-wider">{t('description')}</label>
                 <input
                   type="text"
                   placeholder="What is this for?"
@@ -280,14 +280,13 @@ export default function Transactions() {
           </div>
         )}
 
-        {/* Add Button */}
+        {/* Add Button - Hidden, using FAB instead */}
         {!showAddForm && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="btn-neon-cyan flex items-center gap-2 w-full justify-center py-3"
+            className="hidden"
           >
             <Plus className="w-5 h-5" />
-            Add New Transaction
           </button>
         )}
 
@@ -338,6 +337,17 @@ export default function Transactions() {
             ))
           )}
         </div>
+
+        {/* Floating Action Button (FAB) */}
+        {!showAddForm && (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="fixed bottom-8 right-8 bg-neon-cyan hover:bg-neon-cyan/80 text-background rounded-full w-16 h-16 flex items-center justify-center shadow-lg transition-all hover:scale-110 z-50"
+            title={t('addTransaction')}
+          >
+            <Plus className="w-8 h-8" />
+          </button>
+        )}
       </div>
     </DashboardLayout>
   );

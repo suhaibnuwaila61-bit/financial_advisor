@@ -580,3 +580,25 @@
 - [x] No TypeScript errors
 - [x] Analytics page fully functional with Arabic translation
 - [x] RTL layout works correctly on Analytics page
+
+
+## Phase 32: Full Transactions Section Arabic Translation & Floating Action Button
+
+✅ **COMPLETED:**
+- [x] Add comprehensive Arabic translations for Transactions page (15+ keys)
+- [x] Update Transactions page to use t() function for all headings and labels
+- [x] Translate header title "Transaction Log" to Arabic
+- [x] Translate subtitle "Track all income and expense transactions" to Arabic
+- [x] Translate summary cards (Total Income, Total Expenses, Net) to Arabic
+- [x] Translate time range filter (Daily, Weekly, Monthly) to Arabic
+- [x] Translate form labels (Type, Amount, Description, Category) to Arabic
+- [x] Translate empty state messages to Arabic
+- [x] Add floating action button (FAB) in bottom-right corner
+- [x] FAB has "+" icon with cyan background and hover effects
+- [x] FAB is accessible from mobile and desktop (fixed positioning)
+- [x] FAB uses t('addTransaction') for tooltip translation
+- [x] FAB scales up on hover for better UX
+- [x] All 56 tests passing
+- [x] No TypeScript errors
+- [x] Transactions page fully functional with Arabic translation
+- [x] RTL layout works correctly on Transactions page

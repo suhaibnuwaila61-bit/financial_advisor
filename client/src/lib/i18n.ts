@@ -23,6 +23,8 @@ export const translations = {
     moneyLentMinusMoneyBorrowed: "Money Lent - Money Borrowed",
     totalIncome: "Total Income",
     totalExpenses: "Total Expenses",
+    net: "Net",
+    monthly_: "Monthly",
     portfolioValue: "Portfolio Value",
     totalSavings: "Total Savings",
     totalAssets: "Total Assets",
@@ -34,6 +36,8 @@ export const translations = {
 
     // Transactions
     transactionHistory: "Transaction History",
+    transactionLog: "Transaction Log",
+    trackAllTransactions: "Track all income and expense transactions",
     addTransaction: "Add Transaction",
     deleteTransaction: "Delete Transaction",
     amount: "Amount",
@@ -46,6 +50,8 @@ export const translations = {
     noTransactions: "No transactions yet",
     transactionDeletedSuccessfully: "Transaction deleted successfully!",
     failedToDeleteTransaction: "Failed to delete transaction",
+    transactionType: "Transaction Type",
+    noTransactionData: "No transactions available for this period",
 
     // Investments
     investmentPortfolio: "Investment Portfolio",
@@ -231,6 +237,8 @@ export const translations = {
     moneyLentMinusMoneyBorrowed: "المال المُقرض - المال المقترض",
     totalIncome: "إجمالي الدخل",
     totalExpenses: "إجمالي النفقات",
+    net: "الرصيد",
+    monthly_: "شهري",
     portfolioValue: "قيمة المحفظة",
     totalSavings: "إجمالي الادخار",
     totalAssets: "إجمالي الأصول",
@@ -242,18 +250,22 @@ export const translations = {
 
     // Transactions
     transactionHistory: "سجل المعاملات",
+    transactionLog: "سجل المعاملات",
+    trackAllTransactions: "تتبع جميع معاملات الدخل والنفقات",
     addTransaction: "إضافة معاملة",
-    deleteTransaction: "حذف المعاملة",
+    deleteTransaction: "حذف معاملة",
     amount: "المبلغ",
     description: "الوصف",
     category: "الفئة",
     date: "التاريخ",
     type: "النوع",
-    expense: "نفقة",
+    expense: "مبلغ مرفوق",
     income_: "دخل",
     noTransactions: "لا توجد معاملات حتى الآن",
     transactionDeletedSuccessfully: "تم حذف المعاملة بنجاح!",
     failedToDeleteTransaction: "فشل حذف المعاملة",
+    transactionType: "نوع المعاملة",
+    noTransactionData: "لا توجد معاملات متاحة لهذه الفترة",
 
     // Investments
     investmentPortfolio: "محفظة الاستثمار",
