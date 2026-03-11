@@ -131,10 +131,10 @@ export default function Budgets() {
         <div className="flex justify-between items-start border-b-2 border-neon-pink pb-6">
           <div>
             <h1 className="text-4xl font-bold neon-text-pink mb-2">
-              BUDGET CONTROL
+              {t('budgetManagementTitle').toUpperCase()}
             </h1>
             <p className="text-neon-cyan text-sm uppercase tracking-widest">
-              Set limits and monitor spending
+              {t('budgetManagementSubtitle')}
             </p>
           </div>
           <button

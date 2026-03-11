@@ -99,10 +99,10 @@ export default function SavingsGoals() {
         <div className="flex justify-between items-start border-b-2 border-neon-pink pb-6">
           <div>
             <h1 className="text-4xl font-bold neon-text-pink mb-2">
-              SAVINGS GOALS
+              {t('savingsGoalsTitle').toUpperCase()}
             </h1>
             <p className="text-neon-cyan text-sm uppercase tracking-widest">
-              Set and track your financial targets
+              {t('savingsGoalsSubtitle')}
             </p>
           </div>
           <button
@@ -110,7 +110,7 @@ export default function SavingsGoals() {
             className="px-4 py-2 rounded-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
-            Add Goal
+            {t('addSavingsGoal')}
           </button>
         </div>
 

@@ -625,3 +625,21 @@
 - [ ] Test all three pages with Arabic language selected
 - [ ] Verify RTL layout works correctly on all three pages
 - [ ] Test all buttons and forms work in Arabic mode
+
+
+## Phase 34: Update Pages to Use useLanguage Hook
+
+✅ **COMPLETED:**
+- [x] Update Investments page to use t() function for all text labels
+- [x] Update Budgets page to use t() function for all text labels
+- [x] Update Savings Goals page to use t() function for all text labels
+- [x] Add investmentPortfolioTitle and investmentPortfolioSubtitle translations
+- [x] Add budgetManagementTitle and budgetManagementSubtitle translations
+- [x] Add savingsGoalsTitle and savingsGoalsSubtitle translations
+- [x] Add recordTrade, trade, and refreshPrices translations
+- [x] All 56 tests passing
+- [x] Zero TypeScript errors
+- [x] Dev server running stably
+- [x] Investments page header now translates to Arabic
+- [x] Budgets page header now translates to Arabic
+- [x] Savings Goals page header now translates to Arabic

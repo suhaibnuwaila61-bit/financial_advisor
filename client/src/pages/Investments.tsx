@@ -292,15 +292,18 @@ export default function Investments() {
       <div className="space-y-6 px-2 sm:px-4 md:px-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-neon-cyan">Investment Portfolio</h1>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-neon-cyan">{t('investmentPortfolioTitle')}</h1>
+            <p className="text-sm text-gray-400 mt-1">{t('investmentPortfolioSubtitle')}</p>
+          </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowTransactionForm(true)}
               className="flex items-center justify-center gap-2 bg-neon-cyan text-background px-3 py-2 text-sm sm:px-4 sm:py-2 font-bold hover:bg-neon-pink transition flex-1 sm:flex-none"
             >
               <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Record Trade</span>
-              <span className="sm:hidden">Trade</span>
+              <span className="hidden sm:inline">{t('recordTrade')}</span>
+              <span className="sm:hidden">{t('trade')}</span>
             </button>
             <button
               onClick={handleRefreshPrices}
@@ -308,15 +311,15 @@ export default function Investments() {
               className="flex items-center justify-center gap-2 bg-neon-cyan text-background px-3 py-2 text-sm sm:px-4 sm:py-2 font-bold hover:bg-neon-pink transition disabled:opacity-50 flex-1 sm:flex-none"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="hidden sm:inline">{t('refreshPrices')}</span>
             </button>
             <button
               onClick={() => setShowAddForm(true)}
               className="flex items-center justify-center gap-2 bg-neon-cyan text-background px-3 py-2 text-sm sm:px-4 sm:py-2 font-bold hover:bg-neon-pink transition flex-1 sm:flex-none"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Add Investment</span>
-              <span className="sm:hidden">Add</span>
+              <span className="hidden sm:inline">{t('addInvestment')}</span>
+              <span className="sm:hidden">{t('add')}</span>
             </button>
           </div>
         </div>
