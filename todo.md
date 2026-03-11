@@ -602,3 +602,26 @@
 - [x] No TypeScript errors
 - [x] Transactions page fully functional with Arabic translation
 - [x] RTL layout works correctly on Transactions page
+
+
+## Phase 33: Translate Remaining Sections to Arabic
+
+✅ **COMPLETED:**
+- [x] Add comprehensive Arabic translations for Investments page (20+ keys)
+- [x] Add comprehensive Arabic translations for Budgets page (20+ keys)
+- [x] Add comprehensive Arabic translations for Savings Goals page (20+ keys)
+- [x] Add Arabic translations for asset types (Stock, Crypto, Bond, ETF, Mutual Fund, Other)
+- [x] All 56 tests passing
+- [x] Zero TypeScript errors
+- [x] Dev server running stably
+
+**NEXT STEPS:**
+- [ ] Update Investments page with useLanguage hook for all text labels
+- [ ] Update Budgets page with useLanguage hook for all text labels
+- [ ] Update Savings Goals page with useLanguage hook for all text labels
+- [ ] Add Dashboard-style "Add Entry" button to Investments page
+- [ ] Add Dashboard-style "Add Entry" button to Budgets page
+- [ ] Add Dashboard-style "Add Entry" button to Savings Goals page
+- [ ] Test all three pages with Arabic language selected
+- [ ] Verify RTL layout works correctly on all three pages
+- [ ] Test all buttons and forms work in Arabic mode
