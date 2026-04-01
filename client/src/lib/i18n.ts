@@ -84,8 +84,8 @@ export const translations = {
     etf: "ETF",
     mutual: "Mutual Fund",
     other: "Other",
-
-    // Savings Goals
+    commodity: "Commodity",
+    assetAllocation: "Asset Allocation",
     savingsGoalsPage: "Savings Goals",
     savingsGoalsTitle: "Savings Goals",
     savingsGoalsSubtitle: "Track your savings goals and progress",
@@ -338,8 +338,8 @@ export const translations = {
     etf: "صندوق متداول",
     mutual: "صندوق استثماري",
     other: "آخر",
-
-    // Savings Goals
+    commodity: "سلعة",
+    assetAllocation: "توزيع الأصول",
     savingsGoalsPage: "أهداف الادخار",
     savingsGoalsTitle: "أهداف الادخار",
     savingsGoalsSubtitle: "تتبع أهداف الادخار الخاصة بك والتقدم",
